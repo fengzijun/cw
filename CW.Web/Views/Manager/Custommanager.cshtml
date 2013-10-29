@@ -1,0 +1,439 @@
+﻿@{
+    ViewBag.Title = "User";
+}
+
+<script>
+    Ext.require(['*']);
+
+    Ext.define('user', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'name', type: 'string' },
+          { name: 'company', type: 'string' },
+          { name: 'kpname', type: 'string' },
+          { name: 'sh', type: 'string' },
+          { name: 'address', type: 'string' },
+          { name: 'tel', type: 'string' },
+          { name: 'bank', type: 'string' },
+          { name: 'account', type: 'string' },
+          { name: 'remark', type: 'string' }
+          ]
+    });
+
+    Ext.onReady(function () {
+        var columns = [//配置表格列  
+                {header: "id", dataIndex: 'ID', hidden: true },
+                { header: "品牌", dataIndex: 'name', width: 120 },
+                { header: "公司全称", dataIndex: 'company', width: 120 },
+                { header: "增票开票名称", dataIndex: 'kpname', width: 120 },
+                { header: "税号", dataIndex: 'sh', width: 120 },
+                { header: "地址", dataIndex: 'address', width: 120 },
+                { header: "电话", dataIndex: 'tel', width: 120 },
+                { header: "公司开户行", dataIndex: 'bank', width: 120 },
+                { header: "公司账号", dataIndex: 'account', width: 120 },
+                { header: "备注", dataIndex: 'remark', width: 120 }
+                ];
+
+        var store = new Ext.data.Store({
+            model: 'user',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/manager/GetCustomers',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: true//自动加载  
+        });
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: true,
+            columnLines: true,
+            selModel: Ext.create('Ext.selection.CheckboxModel'),
+            tbar: [{
+                xtype: 'button',
+                text: '新增',
+                iconCls:"Applicationadd",
+                handler: add
+
+            }, {
+                xtype: 'button',
+                text: '修改',
+                iconCls: "Applicationedit",
+                handler: edit
+
+            }, {
+                xtype: 'button',
+                text: '删除',
+                iconCls: "Applicationdelete",
+                handler: del
+            }],
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: store, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+            store: store,
+            renderTo: 'main',
+            columns: columns
+        });
+
+        function add() {
+
+            var form = Ext.create('Ext.panel.Panel', {
+                border: 0,
+                id: 'userpanel',
+                bodyPadding: 5,
+                autoScroll: true,
+                layout: {
+                    type: 'vbox',       // Arrange child items vertically
+                    align: 'stretch',    // Each takes up full width
+                    padding: 5
+                },
+
+                items: [{
+                    fieldLabel: '品牌',
+                    name: "name",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '公司全称',
+                    name: "company",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '增票开票名称',
+                    name: "kpname",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '税号',
+                    name: "sh",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '地址',
+                    name: "address",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '电话',
+                    name: "tel",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '公司开户行',
+                    name: "bank",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '公司账号',
+                    name: "account",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '备注',
+                    name: "remark",
+                    xtype: 'textfield'
+                }
+                ]
+            });
+
+            var win = Ext.create('Ext.window.Window', {
+                title: '新建客户',
+                collapsible: true,
+                animCollapse: true,
+                maximizable: true,
+                width: 400,
+                height: 400,
+                minWidth: 300,
+                minHeight: 200,
+                autoScroll: true,
+                layout: 'fit',
+                items: form,
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    layout: {
+                        pack: 'center'
+                    },
+                    items: [{
+                        minWidth: 80,
+                        text: '保存',
+                        iconCls:"Application",
+                        handler: adduser
+                    }, {
+                        minWidth: 80,
+                        text: '取消',
+                        iconCls: "Cancel",
+                        handler: function () {
+                            win.close();
+                        }
+                    }]
+                }]
+            });
+
+            win.show();
+
+            function adduser() {
+                var temp = {};
+                var orderFrom = Ext.ComponentQuery.query('#userpanel [name=name]');
+                temp.name = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=company]');
+                temp.company = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=kpname]');
+                temp.kpname = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=sh]');
+                temp.sh = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=address]');
+                temp.address = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=tel]');
+                temp.tel = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=bank]');
+                temp.bank = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=account]');
+                temp.account = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=remark]');
+                temp.remark = orderFrom[0].getValue();
+
+
+                $.ajax({
+                    url: '/manager/AddCustomer',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: $.toJSON({ data: temp }),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+
+                    }
+                }).done(function (data) {
+                    if (data.Result) {
+                        showsucmsg(data.Msg);
+                        grid.store.load();
+                        win.close();
+                    }
+                    else {
+                        showsucmsg(data.Msg);
+                    }
+                });
+            }
+        }
+
+        function edit() {
+
+            var records = grid.getSelectionModel().getSelection();
+            if (records.length > 1) {
+                showerrormsg("只能选择一行数据");
+                return;
+            }
+            var temp = {};
+
+            rec = grid.getSelectionModel().getSelection()[0];
+  
+            temp.name = rec.get("name");
+            temp.company = rec.get("company");
+            temp.ID = rec.get("id");
+            temp.kpname = rec.get("kpname");
+            temp.sh = rec.get("sh");
+            temp.address = rec.get("address");
+            temp.tel = rec.get("tel");
+            temp.bank = rec.get("bank");
+            temp.account = rec.get("account");
+            temp.remark = rec.get("remark");
+
+
+            var form = Ext.create('Ext.panel.Panel', {
+                border: 0,
+                id: 'userpanel',
+                bodyPadding: 5,
+                autoScroll: true,
+                layout: {
+                    type: 'vbox',       // Arrange child items vertically
+                    align: 'stretch',    // Each takes up full width
+                    padding: 5
+                },
+
+                items: [{
+                    fieldLabel: '品牌',
+                    name: "name",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '公司全称',
+                    name: "company",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '增票开票名称',
+                    name: "kpname",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '税号',
+                    name: "sh",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '地址',
+                    name: "address",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '电话',
+                    name: "tel",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '公司开户行',
+                    name: "bank",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '公司账号',
+                    name: "account",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '备注',
+                    name: "remark",
+                    xtype: 'textfield'
+                }
+                ]
+            });
+
+            var win = Ext.create('Ext.window.Window', {
+                title: '新建用户',
+                collapsible: true,
+                animCollapse: true,
+                maximizable: true,
+                width: 400,
+                height: 400,
+                minWidth: 300,
+                minHeight: 200,
+                autoScroll: true,
+                layout: 'fit',
+                items: form,
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    layout: {
+                        pack: 'center'
+                    },
+                    items: [{
+                        minWidth: 80,
+                        text: '保存',
+                        iconCls:"Application",
+                        handler: edituser
+                    }, {
+                        minWidth: 80,
+                        text: '取消',
+                        iconCls: "Cancel",
+                        handler: function () {
+                            win.close();
+                        }
+                    }]
+                }]
+            });
+
+            win.show();
+
+            var orderFrom = Ext.ComponentQuery.query('#userpanel [name=name]');
+            orderFrom[0].setValue(temp.name);
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=company]');
+            orderFrom[0].setValue(temp.company);
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=kpname]');
+            orderFrom[0].setValue(temp.kpname);
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=sh]');
+            orderFrom[0].setValue(temp.sh);
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=address]');
+            orderFrom[0].setValue(temp.address);
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=tel]');
+            orderFrom[0].setValue(temp.tel);
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=bank]');
+            orderFrom[0].setValue(temp.bank);
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=account]');
+            orderFrom[0].setValue(temp.account);
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=remark]');
+            orderFrom[0].setValue(temp.remark);
+
+
+            function edituser() {
+
+                var orderFrom = Ext.ComponentQuery.query('#userpanel [name=name]');
+                temp.name = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=company]');
+                temp.company = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=kpname]');
+                temp.kpname = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=sh]');
+                temp.sh = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=address]');
+                temp.address = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=tel]');
+                temp.tel = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=bank]');
+                temp.bank = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=account]');
+                temp.account = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=remark]');
+                temp.remark = orderFrom[0].getValue();
+
+
+                $.ajax({
+                    url: '/manager/EditCustomer',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: $.toJSON({ data: temp }),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+
+                    }
+                }).done(function (data) {
+                    if (data.Result) {
+                        showsucmsg(data.Msg);
+                        grid.store.load();
+                        win.close();
+                    }
+                    else {
+                        showsucmsg(data.Msg);
+                    }
+                });
+            }
+        }
+
+        function del() {
+
+            var records = grid.getSelectionModel().getSelection();
+            var ids = [];
+
+            Ext.Array.each(records, function (rec) {
+                //names.push(rec.get('text'));
+                //将选中的节点的ID保存
+                ids.push(rec.get('ID'));
+            });
+            var idsstr = ids.join(",");
+
+            Ext.MessageBox.confirm("提示信息", "你确定删除吗？", function (btn) {
+                if (btn == "yes") {
+                    Ext.Ajax.request({
+                        url: '/manager/DelCustomer',
+                        Method: 'POST',
+                        params: {
+                            ids: idsstr
+
+                        },
+                        success: function (response) {
+                            //var text = response.responseText;
+                            // process server response here
+
+                            showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                            if (Ext.JSON.decode(response.responseText).Result) {
+                                grid.store.load();
+                            }
+                        }
+                    });
+                }
+            })
+        }
+
+    });
+
+
+</script>
+
+<div id="main"></div>

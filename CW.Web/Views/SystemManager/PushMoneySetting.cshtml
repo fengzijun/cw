@@ -1,0 +1,325 @@
+﻿@{
+    ViewBag.Title = "User";
+}
+
+<script>
+    Ext.require(['*']);
+
+    Ext.define('kptype', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'name', type: 'string' },
+          { name: 'percentage', type: 'string' }
+
+          ]
+    });
+
+    Ext.onReady(function () {
+        var columns = [//配置表格列  
+                {header: "id", dataIndex: 'ID', hidden: true },
+                { header: "名字", dataIndex: 'name', width: 120 },
+                { header: "提成比例", dataIndex: 'percentage', width: 120 }
+                ];
+
+        var store = new Ext.data.Store({
+            model: 'kptype',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/systemmanager/GetPushMoneySettings',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: true//自动加载  
+        });
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: true,
+            columnLines: true,
+            selModel: Ext.create('Ext.selection.CheckboxModel'),
+            tbar: [{
+                xtype: 'button',
+                text: '新增',
+                iconCls: "Applicationadd",
+                handler: add
+
+            }, {
+                xtype: 'button',
+                text: '修改',
+                iconCls: "Applicationedit",
+                handler: edit
+
+            }, {
+                xtype: 'button',
+                text: '删除',
+                iconCls: "Applicationdelete",
+                handler: del
+            }],
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: store, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+            store: store,
+            renderTo: 'main',
+            columns: columns
+        });
+
+        function add() {
+
+
+         
+
+            var form = Ext.create('Ext.panel.Panel', {
+                border: 0,
+                id: 'userpanel',
+                bodyPadding: 5,
+                autoScroll: true,
+                layout: {
+                    type: 'vbox',       // Arrange child items vertically
+                    align: 'stretch',    // Each takes up full width
+                    padding: 5
+                },
+
+                items: [{
+                    fieldLabel: '名字',
+                    name: "name",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '提成比例',
+                    name: "percentage",
+                    xtype: 'textfield'
+                }]
+            });
+
+            var win = Ext.create('Ext.window.Window', {
+                title: '新建提成比例',
+                collapsible: true,
+                animCollapse: true,
+                maximizable: true,
+                width: 300,
+                height: 200,
+                minWidth: 300,
+                minHeight: 200,
+                autoScroll: true,
+                layout: 'fit',
+                items: form,
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    layout: {
+                        pack: 'center'
+                    },
+                    items: [{
+                        minWidth: 80,
+                        text: '保存',
+                        iconCls: "Application",
+                        handler: addkptype
+                    }, {
+                        minWidth: 80,
+                        text: '取消',
+                        iconCls: "Cancel",
+                        handler: function () {
+                            win.close();
+                        }
+                    }]
+                }]
+            });
+
+            win.show();
+
+            function addkptype() {
+
+                var orderFrom = Ext.ComponentQuery.query('#userpanel [name=name]');
+                var name = orderFrom[0].getValue();
+
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=percentage]');
+                var percentage = orderFrom[0].getValue();
+
+
+                Ext.Ajax.request({
+                    url: '/systemmanager/AddPushMoneySetting',
+                    Method: 'POST',
+                    params: {
+                        name: name,
+                        percentage: percentage
+                    },
+                    success: function (response) {
+                        //var text = response.responseText;
+                        // process server response here
+                        showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                        if (Ext.JSON.decode(response.responseText).Result) {
+                            //                          var proxy = grid.store.proxy;
+                            //                          proxy.extraParams.condition = Ext.encode(condition);
+                            grid.store.load();
+                            win.close();
+
+                        }
+                    }
+                });
+            }
+        }
+
+        function edit() {
+
+            var records = grid.getSelectionModel().getSelection();
+            if (records.length > 1) {
+                showerrormsg("只能选择一行数据");
+                return;
+            }
+
+
+            rec = grid.getSelectionModel().getSelection()[0];
+            var name = rec.get("name");
+            var percentage = rec.get("percentage");
+            var id = rec.get("ID");
+
+       
+            var form = Ext.create('Ext.panel.Panel', {
+                border: 0,
+                id: 'userpanel',
+                bodyPadding: 5,
+                autoScroll: true,
+                layout: {
+                    type: 'vbox',       // Arrange child items vertically
+                    align: 'stretch',    // Each takes up full width
+                    padding: 5
+                },
+
+                items: [{
+                    fieldLabel: '名字',
+                    name: "name",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '提成比例',
+                    name: "percentage",
+                    xtype: 'textfield'
+                }]
+            });
+
+            var win = Ext.create('Ext.window.Window', {
+                title: '编辑提成比例',
+                collapsible: true,
+                animCollapse: true,
+                maximizable: true,
+                width: 300,
+                height: 200,
+                minWidth: 300,
+                minHeight: 200,
+                autoScroll: true,
+                layout: 'fit',
+                items: form,
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    layout: {
+                        pack: 'center'
+                    },
+                    items: [{
+                        minWidth: 80,
+                        text: '保存',
+                        iconCls: "Application",
+                        handler: editkptype
+                    }, {
+                        minWidth: 80,
+                        text: '取消',
+                        iconCls: "Cancel",
+                        handler: function () {
+                            win.close();
+                        }
+                    }]
+                }]
+            });
+
+            win.show();
+
+            var orderFrom = Ext.ComponentQuery.query('#userpanel [name=name]');
+            orderFrom[0].setValue(name);
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=percentage]');
+            orderFrom[0].setValue(percentage);
+
+
+            function editkptype() {
+
+                var orderFrom = Ext.ComponentQuery.query('#userpanel [name=name]');
+                var name = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=percentage]');
+                var percentage = orderFrom[0].getValue();
+
+
+                Ext.Ajax.request({
+                    url: '/systemmanager/EditPushMoneySetting',
+                    Method: 'POST',
+                    params: {
+                        name: name,
+                        percentage: percentage,
+                        id: id
+                    },
+                    success: function (response) {
+                        //var text = response.responseText;
+                        // process server response here
+                        showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                        if (Ext.JSON.decode(response.responseText).Result) {
+                            //                          var proxy = grid.store.proxy;
+                            //                          proxy.extraParams.condition = Ext.encode(condition);
+                            grid.store.load();
+                            win.close();
+                            grid.getSelectionModel().deselectAll();
+                        }
+                    }
+                });
+            }
+        }
+
+        function del() {
+
+            var records = grid.getSelectionModel().getSelection();
+            var ids = [];
+
+            Ext.Array.each(records, function (rec) {
+                //names.push(rec.get('text'));
+                //将选中的节点的ID保存
+                ids.push(rec.get('ID'));
+            });
+            var idsstr = ids.join(",");
+
+            Ext.MessageBox.confirm("提示信息", "你确定删除吗？", function (btn) {
+                if (btn == "yes") {
+                    Ext.Ajax.request({
+                        url: '/systemmanager/DelPushMoneySetting',
+                        Method: 'POST',
+                        params: {
+                            ids: idsstr
+
+                        },
+                        success: function (response) {
+                            //var text = response.responseText;
+                            // process server response here
+
+                            showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                            if (Ext.JSON.decode(response.responseText).Result) {
+                                grid.store.load();
+                            }
+                        }
+                    });
+                }
+            })
+        }
+
+    });
+
+
+</script>
+
+<div id="main"></div>

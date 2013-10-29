@@ -1,0 +1,217 @@
+﻿@{
+    ViewBag.Title = "User";
+}
+
+<script>
+    Ext.require(['*']);
+
+    Ext.define('payment', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'orderno', type: 'string' },
+          { name: 'gysname', type: 'string' },
+          { name: 'money', type: 'float' },
+          { name: 'type', type: 'string' },
+          { name: 'maintype', type: 'string' },
+          { name: 'orderuser', type: 'string' }
+          ]
+    });
+
+    Ext.define('detail', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'detail', type: 'string' },
+          { name: 'username', type: 'string' },
+          { name: 'bank', type: 'string' },
+          { name: 'cardno', type: 'string' },
+          { name: 'money', type: 'string' }
+
+
+          ]
+    });
+
+    Ext.onReady(function () {
+        var columns = [//配置表格列  
+                {header: "id", dataIndex: 'ID', hidden: true },
+                { header: "订单编号", dataIndex: 'orderno', summaryRenderer: function () {
+                    return '<b>合计:</b>';
+                } 
+                },
+                { header: "供应商名称", dataIndex: 'gysname' },
+                { header: "金额", dataIndex: 'money', summaryType: 'sum' //求数量
+                   
+                },
+                { header: "报销类型", dataIndex: 'type' },
+                { header: "费用类型", dataIndex: 'maintype' },
+                { header: "制单人", dataIndex: 'orderuser' },
+
+                ];
+
+        var detailcolumns = [//配置表格列  
+
+                {header: "支出明细", dataIndex: "detail" },
+                { header: "收款人名称", dataIndex: "username" },
+                { header: "银行", dataIndex: "bank" },
+                { header: "卡号", dataIndex: "cardno" },
+                { header: "金额", dataIndex: "money" }
+
+                ];
+
+        var store = new Ext.data.Store({
+            model: 'payment',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/Finance/GetPayments',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: true//自动加载  
+        });
+
+
+
+        var detailstore = Ext.create('Ext.data.Store', {
+            model: 'detail',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/Finance/GetPaymentsDetail',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: false//自动加载  
+        });
+
+
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: true,
+            columnLines: true,
+            features: [{
+                ftype: 'summary'//Ext.grid.feature.Summary表格汇总特性
+            }],
+            selModel: Ext.create('Ext.selection.CheckboxModel'),
+            tbar: [{
+                xtype: 'button',
+                text: '记账',
+                handler: jz,
+                iconCls: "Applicationadd"
+
+            }, {
+                xtype: 'button',
+                text: '详细信息',
+
+                iconCls: "Applicationviewdetail",
+                handler: detail
+
+            }],
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: store, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+            store: store,
+            renderTo: 'main',
+            columns: columns
+        });
+
+        function jz() {
+            var records = grid.getSelectionModel().getSelection();
+            if (records.length < 1) {
+                showerrormsg("请选择数据");
+                return;
+            }
+            var ids = [];
+
+            Ext.Array.each(records, function (rec) {
+                //names.push(rec.get('text'));
+                //将选中的节点的ID保存
+                ids.push(rec.get('ID'));
+
+            });
+
+            var idsstr = ids.join(",");
+            Ext.Ajax.request({
+                url: '/Finance/jz',
+                Method: 'POST',
+                params: {
+                    ids: idsstr
+                },
+                success: function (response) {
+                    //var text = response.responseText;
+                    // process server response here
+                    showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                    if (Ext.JSON.decode(response.responseText).Result) {
+
+                        grid.store.load();
+                    }
+                }
+            });
+        }
+
+
+        function detail() {
+
+            var records = grid.getSelectionModel().getSelection();
+            if (records.length > 1) {
+                showerrormsg("只能选择一行数据");
+                return;
+            }
+
+            detailstore.load({
+                params: { id: records[0].get("ID") }
+            });
+
+            var win = Ext.create('Ext.window.Window', {
+                title: '详细信息',
+                width: 600,
+                height: 300,
+                minWidth: 300,
+                minHeight: 200,
+                autoScroll: true,
+                layout: 'fit',
+                items: [{ frame: false,
+                    forceFit: true,
+                    columnLines: true,
+                    store: detailstore,
+                    dockedItems: [{
+                        xtype: 'pagingtoolbar',
+                        store: detailstore, // same store GridPanel is  
+                        // using  
+                        dock: 'bottom',
+                        displayInfo: true
+                    }],
+                    columns: detailcolumns,
+                    xtype: 'grid'
+                }]
+
+            });
+
+            win.show();
+
+
+        }
+
+
+    });
+
+
+</script>
+
+<div id="main"></div>

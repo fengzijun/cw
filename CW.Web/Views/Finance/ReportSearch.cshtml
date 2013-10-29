@@ -1,0 +1,302 @@
+﻿@{
+    ViewBag.Title = "Input";
+}
+
+<script type="text/javascript">
+    var required = '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>';
+    var myMask = new Ext.LoadMask(Ext.getBody(), {
+        msg: "Please wait..."
+    });
+
+    var mytime;
+
+    Ext.require(['*']);
+
+    Ext.define('model', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'company', type: 'string' },
+          { name: 'money', type: 'float' },
+          { name: 'jyj', type: 'float' },
+          { name: 'ysmoney', type: 'float' },
+          { name: 'ml', type: 'float' },
+          { name: 'mlv', type: 'string' },
+          { name: 'othermoney', type: 'float' },
+          { name: 'yefy', type: 'float' },
+          { name: 'yemoney', type: 'float' },
+          { name: 'yevnvarchar', type: 'string' },
+          { name: 'dysk', type: 'float' },
+          { name: 'sqqk', type: 'float' },
+          { name: 'ssnk', type: 'float' },
+          { name: 'xj', type: 'float' },
+          { name: 'dnwqk', type: 'float' },
+          { name: 'snwqk', type: 'float' },
+          { name: 'xj2', type: 'float' },
+          { name: 'kpmoney', type: 'float' }
+
+          ]
+    });
+
+    Ext.define('model2', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'company', type: 'string' },
+          { name: 'username', type: 'string' },
+          { name: 'money', type: 'float' },
+          { name: 'jyj', type: 'float' },
+          { name: 'ysmoney', type: 'float' },
+          { name: 'ml', type: 'float' },
+          { name: 'mlv', type: 'string' },
+          { name: 'othermoney', type: 'float' },
+          { name: 'yefy', type: 'float' },
+          { name: 'yemoney', type: 'float' },
+          { name: 'yevnvarchar', type: 'string' },
+          { name: 'dysk', type: 'float' },
+          { name: 'sqqk', type: 'float' },
+          { name: 'ssnk', type: 'float' },
+          { name: 'xj', type: 'float' },
+          { name: 'dnwqk', type: 'float' },
+          { name: 'snwqk', type: 'float' },
+          { name: 'xj2', type: 'float' },
+          { name: 'kpmoney', type: 'float' }
+
+          ]
+    });
+
+    Ext.onReady(function () {
+
+
+
+        //        fields: ['ID', 'name','company','kpname','sh','address','tel','bank','account'],
+        var columns = [//配置表格列  
+
+                {header: "公司", dataIndex: "company", summaryType: 'sum', summaryRenderer: function () {
+                    return '<b>合计:</b>';
+                }
+            },
+                { header: "合同金额", dataIndex: "money", summaryType: 'sum' },
+                { header: "净业绩", dataIndex: "jyj", summaryType: 'sum' },
+                { header: "预算费用", dataIndex: "ysmoney", summaryType: 'sum' },
+                { header: "营业毛利", dataIndex: "ml", summaryType: 'sum' },
+                { header: "毛利率", dataIndex: "mlv" },
+                { header: "其他收入", dataIndex: "othermoney", summaryType: 'sum' },
+                { header: "营业费用", dataIndex: "yefy", summaryType: 'sum' },
+                { header: "营业利润", dataIndex: "yemoney", summaryType: 'sum' },
+                { header: "营业利率", dataIndex: "yevnvarchar" },
+                { header: "收当月款", dataIndex: "dysk", summaryType: 'sum' },
+                { header: "收前期款", dataIndex: "sqqk", summaryType: 'sum' },
+                { header: "收上年款", dataIndex: "ssnk", summaryType: 'sum' },
+                { header: "小计", dataIndex: "xj", summaryType: 'sum' },
+                { header: "当年尾欠款", dataIndex: "dnwqk", summaryType: 'sum' },
+                { header: "上年尾欠款", dataIndex: "snwqk", summaryType: 'sum' },
+                { header: "小计", dataIndex: "xj2", summaryType: 'sum' },
+                { header: "开票金额", dataIndex: "kpmoney", summaryType: 'sum' }
+
+
+                ];
+
+        var columns2 = [//配置表格列  
+                {header: "业务员", dataIndex: "username", summaryRenderer: function () {
+                    return '<b>合计:</b>';
+                }
+            },
+                { header: "公司", dataIndex: "company" },
+                { header: "合同金额", dataIndex: "money", summaryType: 'sum' },
+                { header: "净业绩", dataIndex: "jyj", summaryType: 'sum' },
+                { header: "预算费用", dataIndex: "ysmoney", summaryType: 'sum' },
+                { header: "营业毛利", dataIndex: "ml", summaryType: 'sum' },
+                { header: "毛利率", dataIndex: "mlv" },
+                { header: "其他收入", dataIndex: "othermoney", summaryType: 'sum' },
+                { header: "营业费用", dataIndex: "yefy", summaryType: 'sum' },
+                { header: "营业利润", dataIndex: "yemoney", summaryType: 'sum' },
+                { header: "营业利率", dataIndex: "yevnvarchar" },
+                { header: "收当月款", dataIndex: "dysk", summaryType: 'sum' },
+                { header: "收前期款", dataIndex: "sqqk", summaryType: 'sum' },
+                { header: "收上年款", dataIndex: "ssnk", summaryType: 'sum' },
+                { header: "小计", dataIndex: "xj", summaryType: 'sum' },
+                { header: "当年尾欠款", dataIndex: "dnwqk", summaryType: 'sum' },
+                { header: "上年尾欠款", dataIndex: "snwqk", summaryType: 'sum' },
+                { header: "小计", dataIndex: "xj2", summaryType: 'sum' },
+                { header: "开票金额", dataIndex: "kpmoney", summaryType: 'sum' }
+
+
+                ];
+
+        var gstore = Ext.create('Ext.data.Store', {
+            model: 'model',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/Finance/YYreportsearch',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    extraParams: { time: mytime },
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: false//自动加载  
+        });
+
+        var gstore2 = Ext.create('Ext.data.Store', {
+            model: 'model2',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/Finance/YYreportusersearch',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    extraParams: { time: mytime },
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: false//自动加载  
+        });
+
+        gstore.on('beforeload', function (store, operation, eOpts) {
+            operation.params = {
+                time: Ext.Date.format(new Date(Ext.ComponentQuery.query('#multiColumnForm [name=time]')[0].getValue()), 'Y-m-d H:i:s')
+            };
+
+        }, this);
+
+        gstore2.on('beforeload', function (store, operation, eOpts) {
+            operation.params = {
+                time:Ext.Date.format(new Date(Ext.ComponentQuery.query('#multiColumnForm [name=time]')[0].getValue()), 'Y-m-d H:i:s')
+            };
+
+        }, this);
+
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: false,
+            autoScroll: true,
+            height: 350,
+            columnLines: true,
+            features: [{
+                ftype: 'summary'//Ext.grid.feature.Summary表格汇总特性
+            }],
+            title: "月报表",
+            store: gstore,
+            renderTo: 'detail',
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: gstore, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+
+            columns: columns
+        });
+
+        var grid2 = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: false,
+            autoScroll: true,
+            height: 550,
+            columnLines: true,
+            title: "业务员月报表",
+            features: [{
+                ftype: 'summary'//Ext.grid.feature.Summary表格汇总特性
+            }],
+            store: gstore2,
+            renderTo: 'detail2',
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: gstore2, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+
+            columns: columns2
+        });
+
+        var top = Ext.widget({
+            xtype: 'form',
+            id: 'multiColumnForm',
+            collapsible: true,
+            frame: true,
+
+            title: '营业报表查询',
+            bodyPadding: '5 5 0',
+            renderTo: 'main',
+
+            bodyBorder: 0,
+            fieldDefaults: {
+                labelWidth: 80
+            },
+            defaults: {
+                margins: '0 0 10 0'
+            },
+            items: [{
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+
+                    name: 'time',
+                    fieldLabel: '日期',
+                    xtype: "datefield",
+                    allowBlank: false,
+                    width: 300
+
+                }]
+
+            }],
+
+            buttons: [{
+                text: '查询',
+                iconCls: "Cdgo",
+                handler: function () {
+
+
+                    orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=time]');
+                    var time = Ext.Date.format(new Date(orderFrom[0].getValue()), 'Y-m-d H:i:s');
+
+                    mytim = time;
+
+                    gstore.load({
+                        params: { time: time }
+
+                    });
+
+                    gstore2.load({
+                        params: { time: time }
+
+                    });
+                }
+            }]
+        });
+    });
+   
+
+
+</script>
+<div id="main">
+
+</div>
+<div id="detail">
+
+</div>
+<div id="detail2">
+
+</div>

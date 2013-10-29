@@ -1,0 +1,211 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+@*<script>
+      Ext.Loader.setConfig({ enabled: true });
+
+      Ext.Loader.setPath('Ext.ux', '../scripts/extjs/examples/ux');
+
+      Ext.require([
+    'Ext.tip.QuickTipManager',
+    'Ext.container.Viewport',
+    'Ext.layout.*',
+    'Ext.form.Panel',
+    'Ext.form.Label',
+    'Ext.grid.*',
+    'Ext.data.*',
+    'Ext.tree.*',
+    'Ext.selection.*',
+    'Ext.tab.Panel',
+    'Ext.ux.layout.Center'
+]);
+
+      //
+      // This is the main layout definition.
+      //
+      Ext.onReady(function () {
+
+
+          // This is an inner body element within the Details panel created to provide a "slide in" effect
+          // on the panel body without affecting the body's box itself.  This element is created on
+          // initial use and cached in this var for subsequent access.
+          var detailEl;
+
+          // Gets all layouts examples
+
+          // This is the main content center region that will contain each example layout panel.
+          // It will be implemented as a CardLayout since it will contain multiple panels with
+          // only one being visible at any given time.
+
+          var contentPanel = {
+              id: 'content-panel',
+              region: 'center', // this is what makes this panel into a region within the containing layout
+              layout: 'card',
+              title: 'Sample Layouts',
+              activeItem: 0,
+              border: true
+          };
+
+          var store = Ext.create('Ext.data.TreeStore', {
+              root: {
+                  expanded: true
+              }
+
+          });
+
+          // Go ahead and create the TreePanel now so that we can use it below
+          var treePanel = Ext.create('Ext.tree.Panel', {
+              id: 'tree-panel',
+              title: 'Sample Layouts',
+              region: 'north',
+              minSize: 150,
+              rootVisible: false,
+              height: 200,
+              autoScroll: true
+          });
+
+          // Assign the changeLayout function to be called on tree node click.
+          //         treePanel.getSelectionModel().on('select', function (selModel, record) {
+          //             if (record.get('leaf')) {
+          //                 Ext.getCmp('content-panel').layout.setActiveItem(record.getId() + '-panel');
+          //                 if (!detailEl) {
+          //                     var bd = Ext.getCmp('details-panel').body;
+          //                     bd.update('').setStyle('background', '#fff');
+          //                     detailEl = bd.createChild(); //create default empty div
+          //                 }
+          //                 detailEl.hide().update(Ext.getDom(record.getId() + '-details').innerHTML).slideIn('l', { stopAnimation: true, duration: 200 });
+          //             }
+          //         });
+
+          // This is the Details panel that contains the description for each example layout.
+
+          // Finally, build the main layout once all the pieces are ready.  This is also a good
+          // example of putting together a full-screen BorderLayout within a Viewport.
+          Ext.create('Ext.Viewport', {
+              layout: 'border',
+              title: '',
+              items: [{
+
+                  id: 'layout-browser',
+                  region: 'west',
+                  border: true,
+                  split: true,
+
+                  width: 290,
+                  minSize: 100,
+                  maxSize: 500,
+                  items: [treePanel]
+              },
+            contentPanel
+        ],
+              renderTo: Ext.getBody()
+          });
+      });
+
+      
+                      
+
+    </script>
+*@
+<script type="text/javascript">
+    Ext.require(['*']);
+
+
+
+    Ext.onReady(function () {
+
+        Ext.QuickTips.init();
+        var store = Ext.create('Ext.data.TreeStore', {
+            root: {
+                expanded: true
+            },
+            proxy: {
+                type: 'ajax',
+                url: '/home/GetFunctionTree'
+            },
+            fields: ["id", "text", "url"]
+
+        });
+
+
+        function tree_event(view, rec, item, index, event) {
+
+            event.preventDefault();
+            event.stopEvent();
+
+            var url = rec.data.url;
+            var id = rec.data.id;
+            var title = rec.data.text;
+            var isleaf = rec.data.leaf;
+            if (isleaf) {
+                var tabc = contentPanel.getComponent("tab_" + id);
+                if (!tabc) {
+                    tabc = contentPanel.add({
+                        'id': "tab_" + id,
+                        'title': title,
+                        closable: true, // 通过html载入目标页
+                        html: '<iframe scrolling="auto" frameborder="0" width="100%" height="100%" src="' + url + '"></iframe>'
+                    });
+                }
+                contentPanel.setActiveTab(tabc);
+            }
+        };
+
+        var contentPanel = Ext.create('Ext.tab.Panel', {
+            region: 'center', // a center region is ALWAYS required for border layout
+            deferredRender: false
+
+
+        });
+
+        var treePanel = Ext.create('Ext.tree.Panel', {
+            id: 'tree-panel',
+            split: true,
+            height: 700,
+            minSize: 150,
+            rootVisible: false,
+            autoScroll: true,
+            store: store,
+            listeners: { 'itemclick': tree_event }
+
+
+        });
+
+        Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
+        var north = new Ext.Panel({
+            id: 'north',
+            html: '<div id="app-header-title" class="x-component x-box-item x-component-default" >易得集团管理系统</div><div class="loginstatus"><a href="/account/LogOff">退出</a></div>',
+            bodyStyle: 'padding:20px',
+            height: 40,
+            region: 'north',
+            split: false                                    //禁止拖动
+        });
+
+
+        var viewport = Ext.create('Ext.Viewport', {
+            id: 'border-example',
+            layout: 'border',
+            items: [north,
+            {
+                region: 'west',
+                id: 'west-panel', // see Ext.getCmp() below
+                title: '系统菜单',
+                split: true,
+                width: 200,
+                minWidth: 175,
+                maxWidth: 400,
+                collapsible: true,
+                animCollapse: true,
+                margins: '0 0 0 5',
+                items: [treePanel]
+            },
+            contentPanel
+
+           ]
+        });
+
+    });
+</script>
+
+

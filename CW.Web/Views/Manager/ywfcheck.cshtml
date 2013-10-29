@@ -1,0 +1,146 @@
+﻿@{
+    ViewBag.Title = "Input";
+}
+
+<script type="text/javascript">
+    var required = '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>';
+    var myMask = new Ext.LoadMask(Ext.getBody(), {
+        msg: "Please wait..."
+    });
+
+    Ext.require(['*']);
+
+
+    Ext.onReady(function () {
+
+        Ext.define('model', {
+            extend: 'Ext.data.Model',
+            fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'orderno', type: 'string' },
+          { name: 'customername', type: 'string' },
+          { name: 'money', type: 'string' },
+          { name: 'balance', type: 'string' },
+          { name: 'hxbalance', type: 'string' },
+          { name: 'receivename', type: 'string' },
+          { name: 'account', type: 'string' },
+          { name: 'payway', type: 'string' },
+          { name: 'bank', type: 'string' },
+          { name: 'other', type: 'string' },
+          { name: 'ismanagercheck', type: 'string' },
+          { name: 'istopmanagercheck', type: 'string' }
+
+
+
+          ]
+        });
+
+
+
+        var columns = [//配置表格列  
+
+                {header: "订单编号", dataIndex: "orderno" },
+                { header: "客户", dataIndex: "customername" },
+                { header: "所属公司", dataIndex: "company" },
+                { header: "核销金额", dataIndex: "hxbalance" },
+                { header: "银行帐号", dataIndex: "account" },
+                { header: "支付方式", dataIndex: "payway" },
+                { header: "银行", dataIndex: "bank" }
+
+
+
+                ];
+
+
+        var gstore = Ext.create('Ext.data.Store', {
+            model: 'model',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/manager/Getywfs',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: true//自动加载  
+        });
+
+    
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: true,
+            columnLines: true,
+            title: "业务费审核",
+            store: gstore,
+            selModel: Ext.create('Ext.selection.CheckboxModel'),
+            renderTo: 'detail',
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: gstore, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+            tbar: [
+            {
+                xtype: 'button',
+                text: '审核通过',
+                handler: checked,
+                iconCls: "Applicationadd"
+
+            }],
+            columns: columns
+        });
+
+
+        function checked() {
+
+            var records = grid.getSelectionModel().getSelection();
+            var ids = [];
+
+            Ext.Array.each(records, function (rec) {
+                //names.push(rec.get('text'));
+                //将选中的节点的ID保存
+                ids.push(rec.get('ID'));
+            });
+            var idsstr = ids.join(",");
+
+            Ext.MessageBox.confirm("提示信息", "你确定审核通过吗？", function (btn) {
+                if (btn == "yes") {
+                    Ext.Ajax.request({
+                        url: '/Manager/CheckedywfRequest',
+                        Method: 'POST',
+                        params: {
+                            ids: idsstr
+
+                        },
+                        success: function (response) {
+                            //var text = response.responseText;
+                            // process server response here
+
+                            showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                            if (Ext.JSON.decode(response.responseText).Result) {
+                                grid.store.load();
+                            }
+                        }
+                    });
+                }
+            })
+        }
+    });
+
+   
+
+
+</script>
+<div id="main">
+
+</div>
+<div id="detail">
+
+</div>

@@ -1,0 +1,238 @@
+﻿@{
+    ViewBag.Title = "Input";
+}
+
+<script type="text/javascript">
+    var required = '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>';
+    var myMask = new Ext.LoadMask(Ext.getBody(), {
+        msg: "Please wait..."
+    });
+
+    Ext.require(['*']);
+
+    Ext.onReady(function () {
+
+
+        var top = Ext.widget({
+            xtype: 'form',
+            id: 'multiColumnForm',
+            collapsible: true,
+            frame: true,
+            title: '订单收款销账',
+            bodyPadding: '5 5 0',
+            renderTo: 'main',
+
+            bodyBorder: 0,
+            fieldDefaults: {
+                labelWidth: 80
+            },
+            defaults: {
+                margins: '0 0 10 0'
+            },
+            items: [{
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+                    width: 200,
+                    name: 'orderno',
+                    fieldLabel: '订单编号',
+                    allowBlank: false
+
+                }, {
+                    name: 'btnseach',
+
+                    text: '查询',
+                    xtype: "button",
+                    iconCls: "Cdgo",
+                    handler: function () {
+                        var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=orderno]');
+                        var orderno = orderFrom[0].getValue();
+                        var orderobj = getorderinfo(orderno);
+                        if (orderobj != undefined) {
+                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=money]');
+                            orderFrom[0].setValue(orderobj.havemoney);
+                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=receivemoney]');
+                            orderFrom[0].setValue(orderobj.shouldmoney);
+                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=reducemoney]');
+                            orderFrom[0].setValue(orderobj.balancereduce);
+                        }
+                        else {
+                            alert("没有查到此订单号");
+                        }
+
+                    }
+
+                }]
+            }, {
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+                    flex: 1,
+                    name: 'type',
+                    fieldLabel: '收款类型',
+                    allowBlank: false
+
+                }, {
+                    flex: 1,
+                    name: 'money',
+                    fieldLabel: '已销金额',
+
+                    allowBlank: false
+
+                }]
+            }, {
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+
+                    name: 'time',
+                    fieldLabel: '收款日期',
+                    flex: 1,
+                    xtype: "datefield",
+                    allowBlank: false
+
+                }, {
+                    name: 'department',
+                    fieldLabel: '收款部门',
+                    flex: 1,
+                    allowBlank: false
+
+                }, {
+                    name: 'receivemoney',
+                    fieldLabel: '收款金额',
+                    flex: 1,
+                    allowBlank: false
+
+                }]
+            }, {
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+
+                    name: 'reducemoney',
+                    fieldLabel: '整单优惠/调整',
+                    flex: 1,
+                    labelWidth: 120
+
+                }, {
+                    name: 'remark',
+                    fieldLabel: '备注',
+                    flex: 1
+
+                }]
+            }],
+
+            buttons: [{
+                text: '保存',
+                iconCls: "Application",
+                handler: function () {
+                    if (this.up('form').getForm().isValid()) {
+                        var self = this;
+                        var temp = {};
+
+                        var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=orderno]');
+                        temp.orderno = orderFrom[0].getValue();
+                        orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=type]');
+                        temp.type = orderFrom[0].getValue();
+                        orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=time]');
+                        temp.time = Ext.Date.format(new Date(orderFrom[0].getValue()), 'Y-m-d H:i:s');
+                        orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=money]');
+                        temp.money = orderFrom[0].getValue();
+                        orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=department]');
+                        temp.department = orderFrom[0].getValue();
+                        orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=receivemoney]');
+                        temp.receivemoney = orderFrom[0].getValue();
+                        orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=reducemoney]');
+                        temp.reducemoney = orderFrom[0].getValue();
+                        orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=remark]');
+                        temp.remark = orderFrom[0].getValue();
+
+                        $.ajax({
+                            url: '/Finance/ddszpost',
+                            type: 'POST',
+                            dataType: 'json',
+                            data: $.toJSON({ data: temp }),
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (data) {
+
+                            }
+                        }).done(function (data) {
+                            if (data.Result) {
+                                showsucmsg(data.Msg);
+                                self.up('form').getForm().reset();
+
+                            }
+                            else {
+                                showsucmsg(data.Msg);
+                            }
+                        });
+
+
+                    }
+                }
+            }, {
+                text: '重置',
+                iconCls: "Cancel",
+                handler: function () {
+                    this.up('form').getForm().reset();
+
+                }
+            }]
+        });
+
+        //        fields: ['ID', 'name','company','kpname','sh','address','tel','bank','account'],
+
+
+
+    });
+   
+
+
+</script>
+<div id="main">
+
+</div>
+<div id="detail">
+
+</div>
+

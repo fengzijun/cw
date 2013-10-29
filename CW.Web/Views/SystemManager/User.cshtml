@@ -1,0 +1,429 @@
+﻿@{
+    ViewBag.Title = "User";
+}
+
+<script>
+    Ext.require(['*']);
+
+    Ext.define('user', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'int' },
+          { name: 'role.ID', type: 'int' },
+          { name: 'username', type: 'string' },
+          { name: 'password', type: 'string' },
+          { name: 'role.rolename', type: 'string' },
+          { name: 'Company', type: 'string' }
+
+          ]
+    });
+
+    Ext.define('role', {
+        extend: 'Ext.data.Model',
+        fields: [
+                      { name: 'ID', type: 'int' },
+                      { name: 'rolename', type: 'string' },
+                      { name: 'menu', type: 'string'}]
+    });
+
+
+
+
+
+
+    Ext.onReady(function () {
+        var columns = [//配置表格列  
+                {header: "id", dataIndex: 'ID', hidden: true },
+                { header: "roleid", dataIndex: 'role.ID', hidden: true },
+                { header: "用户名", dataIndex: 'username', width: 120 },
+                { header: "密码", dataIndex: 'password', width: 120 },
+                { header: "角色名", dataIndex: 'role.rolename', width: 120 },
+                { header: "公司", dataIndex: 'Company', width: 120 }
+                ];
+
+        var store = new Ext.data.Store({
+            model: 'user',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/systemmanager/GetUsers',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: true//自动加载  
+        });
+
+        var rolestore = new Ext.data.Store({
+            fields: ['ID', 'rolename'],
+            pageSize: 50,
+            proxy: {
+                type: 'ajax',
+                url: '/systemmanager/GetAllRoles',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: true//自动加载  
+        });
+
+        var companystore = new Ext.data.Store({
+
+            fields: ['abbr', 'name'],
+            data: [
+                    { "abbr": "昆山易得", "name": "昆山易得" },
+                    { "abbr": "苏州易开", "name": "苏州易开" },
+                    { "abbr": "苏州海易", "name": "苏州海易" },
+                    { "abbr": "苏州浦瑞道", "name": "苏州浦瑞道" },
+                    { "abbr": "太仓易开", "name": "太仓易开" }
+
+                ]
+        });
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: true,
+            columnLines: true,
+            selModel: Ext.create('Ext.selection.CheckboxModel'),
+            tbar: [{
+                xtype: 'button',
+                text: '新增',
+                handler: add,
+                iconCls: "Applicationadd"
+
+            }, {
+                xtype: 'button',
+                text: '修改',
+                handler: edit,
+                iconCls: "Applicationedit"
+
+            }, {
+                xtype: 'button',
+                text: '删除',
+                handler: del,
+                iconCls: "Applicationdelete"
+            }],
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: store, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+            store: store,
+            renderTo: 'main',
+            columns: columns
+        });
+
+        function add() {
+
+
+
+            var form = Ext.create('Ext.panel.Panel', {
+                border: 0,
+                id: 'userpanel',
+                bodyPadding: 5,
+                autoScroll: true,
+                layout: {
+                    type: 'vbox',       // Arrange child items vertically
+                    align: 'stretch',    // Each takes up full width
+                    padding: 5
+                },
+
+                items: [{
+                    fieldLabel: '用户名',
+                    name: "username",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '密码',
+                    name: "password",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '角色',
+                    name: "role",
+                    xtype: 'combo',
+                    store: rolestore,
+                    queryMode: 'remote',
+                    displayField: 'rolename',
+                    valueField: 'ID',
+                    autoSelect: true
+
+                }, {
+
+                    name: 'company',
+                    fieldLabel: '所属公司',
+                    xtype: 'combo',
+                    store: companystore,
+                    queryMode: 'local',
+                    displayField: 'name',
+                    valueField: 'abbr',
+                    value: "昆山易得",
+                    forceSelection: true
+
+                }]
+            });
+
+            var win = Ext.create('Ext.window.Window', {
+                title: '新建用户',
+                collapsible: true,
+                animCollapse: true,
+                maximizable: true,
+                width: 300,
+                height: 300,
+                minWidth: 300,
+                minHeight: 200,
+                autoScroll: true,
+                layout: 'fit',
+                items: form,
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    layout: {
+                        pack: 'center'
+                    },
+                    items: [{
+                        minWidth: 80,
+                        text: '保存',
+                        iconCls: "Application",
+                        handler: adduser
+                    }, {
+                        minWidth: 80,
+                        text: '取消',
+                        iconCls: "Cancel",
+                        handler: function () {
+                            win.close();
+                        }
+                    }]
+                }]
+            });
+
+            win.show();
+
+            function adduser() {
+
+                var orderFrom = Ext.ComponentQuery.query('#userpanel [name=username]');
+                var username = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=password]');
+                var password = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=role]');
+                var roleid = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=company]');
+                var company = orderFrom[0].getValue();
+
+                Ext.Ajax.request({
+                    url: '/systemmanager/Adduser',
+                    Method: 'POST',
+                    params: {
+                        username: username,
+                        password: password,
+                        roleid: roleid,
+                        company: company
+                    },
+                    success: function (response) {
+                        //var text = response.responseText;
+                        // process server response here
+                        showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                        if (Ext.JSON.decode(response.responseText).Result) {
+                            win.close();
+                            //                          var proxy = grid.store.proxy;
+                            //                          proxy.extraParams.condition = Ext.encode(condition);
+                            grid.store.load();
+                        }
+                    }
+                });
+            }
+        }
+
+        function edit() {
+
+            var records = grid.getSelectionModel().getSelection();
+            if (records.length > 1) {
+                showerrormsg("只能选择一行数据");
+                return;
+            }
+
+
+
+            rec = grid.getSelectionModel().getSelection()[0];
+            var username = rec.get("username");
+            var password = rec.get("password");
+            var company = rec.get("Company");
+            var id = rec.get("ID");
+            var roleid = rec.get("role.ID");
+    
+            var form = Ext.create('Ext.panel.Panel', {
+                border: 0,
+                id: 'edituserpanel',
+                bodyPadding: 5,
+                autoScroll: true,
+                layout: {
+                    type: 'vbox',       // Arrange child items vertically
+                    align: 'stretch',    // Each takes up full width
+                    padding: 5
+                },
+
+                items: [{
+                    fieldLabel: '用户名',
+                    name: "username",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '密码',
+                    name: "password",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '角色',
+                    name: "role",
+                    xtype: 'combo',
+                    store: rolestore,
+                    queryMode: 'remote',
+                    displayField: 'rolename',
+                    valueField: 'ID',
+                    autoSelect: true
+
+                }, {
+
+                    name: 'company',
+                    fieldLabel: '所属公司',
+                    xtype: 'combo',
+                    store: companystore,
+                    queryMode: 'local',
+                    displayField: 'name',
+                    valueField: 'abbr',
+                    value: "昆山易得",
+                    forceSelection: true
+
+                }]
+            });
+
+            var win = Ext.create('Ext.window.Window', {
+                title: '编辑用户',
+                collapsible: true,
+                animCollapse: true,
+                maximizable: true,
+                width: 300,
+                height: 300,
+                minWidth: 300,
+                minHeight: 200,
+                autoScroll: true,
+                layout: 'fit',
+                items: form,
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    layout: {
+                        pack: 'center'
+                    },
+                    items: [{
+                        minWidth: 80,
+                        text: '保存',
+                        iconCls: "Application",
+                        handler: edituser
+                    }, {
+                        minWidth: 80,
+                        text: '取消',
+                        iconCls: "Cancel",
+                        handler: function () {
+                            win.close();
+                        }
+                    }]
+                }]
+            });
+
+            win.show();
+
+            var orderFrom = Ext.ComponentQuery.query('#edituserpanel [name=username]');
+            orderFrom[0].setValue(username);
+            orderFrom = Ext.ComponentQuery.query('#edituserpanel [name=password]');
+            orderFrom[0].setValue(password);
+            orderFrom = Ext.ComponentQuery.query('#edituserpanel [name=role]');
+            orderFrom[0].setValue(roleid);
+            orderFrom = Ext.ComponentQuery.query('#edituserpanel [name=company]');
+            orderFrom[0].setValue(company);
+
+            function edituser() {
+
+                var orderFrom = Ext.ComponentQuery.query('#edituserpanel [name=username]');
+                var username = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#edituserpanel [name=password]');
+                var password = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#edituserpanel [name=role]');
+                var roleid = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#edituserpanel [name=company]');
+                var company = orderFrom[0].getValue();
+
+                Ext.Ajax.request({
+                    url: '/systemmanager/Edituser',
+                    Method: 'POST',
+                    params: {
+                        username: username,
+                        password: password,
+                        roleid: roleid,
+                        company: company
+                    },
+                    success: function (response) {
+                        //var text = response.responseText;
+                        // process server response here
+                        showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                        if (Ext.JSON.decode(response.responseText).Result) {
+                            win.close();
+                            grid.getSelectionModel().clearSelections();
+                            //                          var proxy = grid.store.proxy;
+                            //                          proxy.extraParams.condition = Ext.encode(condition);
+                            grid.store.load();
+                        }
+                    }
+                });
+            }
+        }
+
+        function del() {
+
+            var records = grid.getSelectionModel().getSelection();
+            var ids = [];
+
+            Ext.Array.each(records, function (rec) {
+                //names.push(rec.get('text'));
+                //将选中的节点的ID保存
+                ids.push(rec.get('ID'));
+            });
+            var idsstr = ids.join(",");
+
+            Ext.MessageBox.confirm("提示信息", "你确定删除吗？", function (btn) {
+                if (btn == "yes") {
+                    Ext.Ajax.request({
+                        url: '/systemmanager/deluser',
+                        Method: 'POST',
+                        params: {
+                            ids: idsstr
+
+                        },
+                        success: function (response) {
+                            //var text = response.responseText;
+                            // process server response here
+
+                            showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                            if (Ext.JSON.decode(response.responseText).Result) {
+                                grid.store.load();
+                            }
+                        }
+                    });
+                }
+            })
+        }
+
+    });
+
+
+</script>
+
+<div id="main"></div>

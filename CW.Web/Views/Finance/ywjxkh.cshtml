@@ -1,0 +1,97 @@
+﻿@{
+    ViewBag.Title = "User";
+}
+
+<script>
+    Ext.require(['*']);
+
+    Ext.define('jx', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+           { name: 'name', type: 'string' },
+          { name: 'company', type: 'string' },
+          { name: 'businesstype', type: 'string' },
+          { name: 'firstsection', type: 'string' },
+          { name: 'firstmoney', type: 'string' },
+          { name: 'firstcomplete', type: 'string' },
+          { name: 'secsection', type: 'string' },
+          { name: 'secmoney', type: 'string' },
+          { name: 'seccomplete', type: 'string' },
+          { name: 'thrsection', type: 'string' },
+          { name: 'thrmoney', type: 'string' },
+          { name: 'thrcomplete', type: 'string' },
+          { name: 'foursection', type: 'string' },
+           { name: 'fourmoney', type: 'string' },
+          { name: 'fourcomplete', type: 'string' }
+
+          ]
+    });
+
+    Ext.onReady(function () {
+        var columns = [//配置表格列  
+                {header: "id", dataIndex: 'ID', hidden: true },
+                { header: "业务人员", width: 120, dataIndex: 'name' },
+                { header: "单位", width: 120, dataIndex: 'company' },
+                { header: "业务种类", width: 120, dataIndex: 'businesstype' },
+                { header: "第一季度", width: 120, dataIndex: 'firstsection' },
+                { header: "收款金额", width: 120, dataIndex: 'firstmoney' },
+                { header: "完成比例", width: 120, dataIndex: 'firstcomplete' },
+                { header: "第二季度", width: 120, dataIndex: 'secsection' },
+                { header: "收款金额", width: 120, dataIndex: 'secmoney' },
+                { header: "完成比例", width: 120, dataIndex: 'seccomplete' },
+                { header: "第三季度", width: 120, dataIndex: 'thrsection' },
+                { header: "收款金额", width: 120, dataIndex: 'thrmoney' },
+                { header: "完成比例", width: 120, dataIndex: 'thrcomplete' },
+                { header: "第四季度", width: 120, dataIndex: 'foursection' },
+                { header: "收款金额", width: 120, dataIndex: 'fourmoney' },
+                { header: "完成比例", width: 120, dataIndex: 'fourcomplete' }
+                ];
+
+        var store = new Ext.data.Store({
+            model: 'jx',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/Finance/ywjxkhget',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: true//自动加载  
+        });
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: false,
+            autoScroll: true,
+            height: 550,
+            columnLines: true,
+            title: "业务绩效考核",
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: store, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+            store: store,
+            renderTo: 'main',
+            columns: columns
+        });
+
+
+
+
+
+
+    });
+
+
+</script>
+
+<div id="main"></div>

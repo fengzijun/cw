@@ -1,0 +1,249 @@
+﻿@{
+    ViewBag.Title = "Input";
+}
+
+<script type="text/javascript">
+    var required = '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>';
+    var myMask = new Ext.LoadMask(Ext.getBody(), {
+        msg: "Please wait..."
+    });
+
+    Ext.require(['*']);
+
+    Ext.define('order', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'orderid', type: 'string' },
+          { name: 'kptt', type: 'string' },
+          { name: 'type', type: 'string' },
+          { name: 'project', type: 'string' },
+          { name: 'money', type: 'string' },
+          { name: 'bcmoney', type: 'string' },
+          { name: 'company', type: 'string' },
+          { name: 'bjsj', type: 'string' },
+          { name: 'remark', type: 'string' },
+          { name: 'other', type: 'string' }
+
+          ]
+    });
+
+
+    Ext.onReady(function () {
+
+
+        //        fields: ['ID', 'name','company','kpname','sh','address','tel','bank','account'],
+        var columns = [//配置表格列  
+
+                {header: "订单编号", dataIndex: "orderid" },
+                { header: "开票抬头", dataIndex: "kptt" },
+                { header: "开票类型", dataIndex: "type" },
+                { header: "开票金额", dataIndex: "money" },
+                { header: "开票差额", dataIndex: "bcmoney" },
+                { header: "补交税金", dataIndex: "bjsj" },
+                { header: "备注", dataIndex: "remark" }
+
+
+                ];
+
+
+        var gstore = Ext.create('Ext.data.Store', {
+            model: 'order',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/topmanager/GetTopMangerKps',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: true//自动加载  
+        });
+
+
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: true,
+            columnLines: true,
+            title: "开票信息",
+            store: gstore,
+            selModel: Ext.create('Ext.selection.CheckboxModel'),
+            renderTo: 'main',
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: gstore, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+            tbar: [{
+                xtype: 'button',
+                text: '审核通过',
+                iconCls: "Applicationadd",
+                handler: checked
+
+
+            },
+            {
+                xtype: 'button',
+                text: '审核不通过',
+                iconCls: "Applicationdelete",
+                handler: unchecked
+
+
+            }],
+            columns: columns
+        });
+
+        function checked() {
+            var records = grid.getSelectionModel().getSelection();
+            var ids = [];
+
+            Ext.Array.each(records, function (rec) {
+                //names.push(rec.get('text'));
+                //将选中的节点的ID保存
+                ids.push(rec.get('ID'));
+            });
+
+            if (ids.length == 0) {
+                showerrormsg("请选择一行数据");
+                return;
+
+            }
+
+            var idsstr = ids.join(",");
+
+            Ext.MessageBox.confirm("提示信息", "你确定审核通过吗？", function (btn) {
+                if (btn == "yes") {
+                    Ext.Ajax.request({
+                        url: '/Manager/checkedkp',
+                        Method: 'POST',
+                        params: {
+                            ids: idsstr
+
+                        },
+                        success: function (response) {
+                            //var text = response.responseText;
+                            // process server response here
+
+                            showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                            if (Ext.JSON.decode(response.responseText).Result) {
+                                grid.store.load();
+                            }
+                        }
+                    });
+                }
+            })
+        }
+
+        function unchecked() {
+            var records = grid.getSelectionModel().getSelection();
+            if (records.length > 1) {
+                showerrormsg("只能选择一行数据");
+                return;
+            }
+
+
+            var form = Ext.create('Ext.panel.Panel', {
+                border: 0,
+                id: 'userpanel',
+                bodyPadding: 5,
+                autoScroll: true,
+                layout: {
+                    type: 'vbox',       // Arrange child items vertically
+                    align: 'stretch',    // Each takes up full width
+                    padding: 5
+                },
+
+                items: [{
+                    fieldLabel: '原因',
+                    name: "reason",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '建议',
+                    name: "msg",
+                    xtype: 'textfield'
+                }]
+            });
+
+            var win = Ext.create('Ext.window.Window', {
+                title: '审核不通过',
+                collapsible: true,
+                animCollapse: true,
+                maximizable: true,
+                width: 300,
+                height: 200,
+                minWidth: 300,
+                minHeight: 200,
+                autoScroll: true,
+                layout: 'fit',
+                items: form,
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    layout: {
+                        pack: 'center'
+                    },
+                    items: [{
+                        minWidth: 80,
+                        text: '保存',
+                        iconCls: "Application",
+                        handler: uncheckedpost
+                    }, {
+                        minWidth: 80,
+                        text: '取消',
+                        iconCls: "Cancel",
+                        handler: function () {
+                            win.close();
+                        }
+                    }]
+                }]
+            });
+
+            win.show();
+
+            function uncheckedpost() {
+                var orderFrom = Ext.ComponentQuery.query('#userpanel [name=reason]');
+                var reason = orderFrom[0].getValue();
+                var orderFrom = Ext.ComponentQuery.query('#userpanel [name=msg]');
+                var msg = orderFrom[0].getValue();
+                var id = records[0].get("ID");
+                $.ajax({
+                    url: '/topmanager/UnChecked',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: $.toJSON({ id: id, reason: reason, msg: msg }),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+
+                    }
+                }).done(function (data) {
+                    if (data.Result) {
+                        showsucmsg(data.Msg);
+                       
+                        win.close();
+                    }
+                    else {
+                        showsucmsg(data.Msg);
+                    }
+                });
+            }
+
+        }
+    });
+   
+
+
+</script>
+<div id="main">
+
+</div>
+<div id="detail">
+
+</div>

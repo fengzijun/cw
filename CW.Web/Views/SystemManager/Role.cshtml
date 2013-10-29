@@ -1,0 +1,382 @@
+﻿@{
+    
+}
+
+<script type="text/javascript">
+  Ext.require(['*']);
+
+  Ext.define('role', {
+      extend: 'Ext.data.Model',
+      fields: [
+          { name: 'ID', type: 'int' },
+          { name: 'rolename', type: 'string' },
+          { name: 'menu', type: 'string'}]
+  });
+
+  Ext.onReady(function () {
+
+
+      var columns = [//配置表格列  
+                {header: "id", dataIndex: 'ID', hidden: true },
+                { header: "角色名", dataIndex: 'rolename', width: 120 },
+                { header: "角色对应的菜单编号", dataIndex: 'menu', width: 240}];
+
+      var store = new Ext.data.Store({
+          model: 'role',
+          pageSize: 5,
+          proxy: {
+              type: 'ajax',
+              url: '/systemmanager/GetRoles',
+              reader: {
+                  type: 'json',
+                  root: 'rows',
+                  idProperty: 'ID',
+                  totalProperty: 'total'
+              }
+          },
+
+          autoLoad: true//自动加载  
+      });
+
+
+      var grid = Ext.create('Ext.grid.Panel', {
+          frame: true,
+          forceFit: true,
+          columnLines: true,
+          selModel: Ext.create('Ext.selection.CheckboxModel'),
+          tbar: [{
+              xtype: 'button',
+              text: '新增',
+              iconCls: "Applicationadd",
+              handler: add
+
+          }, {
+              xtype: 'button',
+              text: '修改',
+
+              iconCls: "Applicationedit",
+              handler: edit
+
+          }, {
+              xtype: 'button',
+              text: '删除',
+              iconCls: "Applicationdelete",
+              handler: del
+          }],
+          dockedItems: [{
+              xtype: 'pagingtoolbar',
+              store: store, // same store GridPanel is  
+              // using  
+              dock: 'bottom',
+              displayInfo: true
+          }],
+          store: store,
+          renderTo: 'main',
+          columns: columns
+      });
+
+
+      //add
+      function add() {
+          var treestore = Ext.create('Ext.data.TreeStore', {
+              root: {
+                  expanded: true
+              },
+              proxy: {
+                  type: 'ajax',
+                  url: '/home/GetFunctionCheckTree'
+              },
+              fields: ["id", "text", "url"]
+
+          });
+
+          var treePanel = Ext.create('Ext.tree.Panel', {
+              id: 'tree-panel',
+              split: true,
+              minSize: 150,
+              rootVisible: false,
+              layout: 'fit',
+              useArrows: true,
+              autoScroll: true,
+              store: treestore,
+              frame: true
+
+
+          });
+
+          treePanel.on('checkchange', function (node, checked) {
+              node.expand();
+              node.checked = checked;
+              node.eachChild(function (child) {
+                  child.set('checked', checked);
+                  child.fireEvent('checkchange', child, checked);
+              });
+          }, treePanel);
+
+          var form = Ext.create('Ext.panel.Panel', {
+
+              border: 0,
+              id: 'orderListTbar',
+              bodyPadding: 5,
+              autoScroll: true,
+              layout: {
+                  type: 'vbox',       // Arrange child items vertically
+                  align: 'stretch',    // Each takes up full width
+                  padding: 5
+              },
+         
+              items: [{
+                  fieldLabel: '角色名字',
+                  name: "rolename",
+                  xtype: 'textfield'
+              }, treePanel]
+          });
+
+          var win = Ext.create('Ext.window.Window', {
+              title: '新建角色',
+              collapsible: true,
+              animCollapse: true,
+              maximizable: true,
+              width: 750,
+              height: 500,
+              minWidth: 300,
+              minHeight: 200,
+              autoScroll: true,
+              layout: 'fit',
+              items: form,
+              dockedItems: [{
+                  xtype: 'toolbar',
+                  dock: 'bottom',
+                  ui: 'footer',
+                  layout: {
+                      pack: 'center'
+                  },
+                  items: [{
+                      minWidth: 80,
+                      text: '保存',
+                      iconCls: "Application",
+                      handler: addrole
+                  }, {
+                      minWidth: 80,
+                      text: '取消',
+                      iconCls: "Cancel",
+                      handler: function () {
+                          win.close();
+                      }
+                  }]
+              }]
+          });
+
+          win.show();
+
+          function addrole() {
+              var records = treePanel.getView().getChecked(),
+              names = [];
+              //为存储ID而创建数组
+              ids = [];
+
+              Ext.Array.each(records, function (rec) {
+                  //names.push(rec.get('text'));
+                  //将选中的节点的ID保存
+                  ids.push(rec.get('id'));
+              });
+
+              var ids = ids.join(',');
+              var orderFrom = Ext.ComponentQuery.query('#orderListTbar [name=rolename]');
+              var rolename = orderFrom[0].getValue();
+              Ext.Ajax.request({
+                  url: '/systemmanager/AddRole',
+                  Method: 'POST',
+                  params: {
+                      ids: ids,
+                      rolename: rolename
+                  },
+                  success: function (response) {
+                      //var text = response.responseText;
+                      // process server response here
+                      showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                      if (Ext.JSON.decode(response.responseText).Result) {
+//                          var proxy = grid.store.proxy;
+//                          proxy.extraParams.condition = Ext.encode(condition);
+                          grid.store.load();
+                      }
+                  }
+              });
+          }
+
+      }
+
+      //edit
+      function edit() {
+          var records = grid.getSelectionModel().getSelection();
+          if (records.length > 1) {
+              showerrormsg("只能选择一行数据");
+              return;
+          }
+
+          rec = grid.getSelectionModel().getSelection()[0];
+          var rolename = rec.get("rolename");
+          var id = rec.get("ID");
+          var treestore = Ext.create('Ext.data.TreeStore', {
+              root: {
+                  expanded: true
+              },
+              proxy: {
+                  type: 'ajax',
+                  url: '/home/GetUserFunctionCheckTree?rolename=' + rolename
+              },
+              fields: ["id", "text", "url"]
+
+          });
+
+          var treePanel = Ext.create('Ext.tree.Panel', {
+              id: 'tree-panel',
+              split: true,
+              minSize: 150,
+              rootVisible: false,
+              layout: 'fit',
+              useArrows: true,
+              autoScroll: true,
+              store: treestore,
+              frame: true
+
+
+          });
+
+          treePanel.on('checkchange', function (node, checked) {
+              node.expand();
+              node.checked = checked;
+              node.eachChild(function (child) {
+                  child.set('checked', checked);
+                  child.fireEvent('checkchange', child, checked);
+              });
+          }, treePanel);
+
+          var form = Ext.create('Ext.panel.Panel', {
+
+              border: 0,
+              id: 'orderListTbar',
+              bodyPadding: 5,
+              autoScroll: true,
+              layout: {
+                  type: 'vbox',       // Arrange child items vertically
+                  align: 'stretch',    // Each takes up full width
+                  padding: 5
+              },
+
+              items: [treePanel]
+          });
+
+          var win = Ext.create('Ext.window.Window', {
+              title: '修改角色',
+              collapsible: true,
+              animCollapse: true,
+              maximizable: true,
+              width: 750,
+              height: 500,
+              minWidth: 300,
+              minHeight: 200,
+              autoScroll: true,
+              layout: 'fit',
+              items: form,
+              dockedItems: [{
+                  xtype: 'toolbar',
+                  dock: 'bottom',
+                  ui: 'footer',
+                  layout: {
+                      pack: 'center'
+                  },
+                  items: [{
+                      minWidth: 80,
+                      text: '保存',
+                      iconCls: "Application",
+                      handler: editrole
+                  }, {
+                      minWidth: 80,
+                      text: '取消',
+                      iconCls: "Cancel",
+                      handler: function () {
+                          win.close();
+                      }
+                  }]
+              }]
+          });
+
+          win.show();
+
+          function editrole() {
+              var records = treePanel.getView().getChecked(),
+              names = [];
+              //为存储ID而创建数组
+              ids = [];
+
+              Ext.Array.each(records, function (rec) {
+                  //names.push(rec.get('text'));
+                  //将选中的节点的ID保存
+                  ids.push(rec.get('id'));
+              });
+
+              var ids = ids.join(',');
+
+              Ext.Ajax.request({
+                  url: '/systemmanager/editRole',
+                  Method: 'POST',
+                  params: {
+                      ids: ids,
+                      rolename: rolename,
+                      id: id
+                  },
+                  success: function (response) {
+                      //var text = response.responseText;
+                      // process server response here
+
+                      showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                      if (Ext.JSON.decode(response.responseText).Result) {
+//                          var proxy = grid.store.proxy;
+//                          proxy.extraParams.condition = Ext.encode(condition);
+                          grid.store.load();
+                      }
+                  }
+              });
+          }
+      }
+
+      //delete
+      function del() {
+          var records = grid.getSelectionModel().getSelection();
+          var ids = [];
+
+          Ext.Array.each(records, function (rec) {
+              //names.push(rec.get('text'));
+              //将选中的节点的ID保存
+              ids.push(rec.get('ID'));
+          });
+          var idsstr = ids.join(",");
+
+          Ext.MessageBox.confirm("提示信息", "你确定删除吗？", function (btn) {
+              if (btn == "yes") {
+                  Ext.Ajax.request({
+                      url: '/systemmanager/delRole',
+                      Method: 'POST',
+                      params: {
+                          ids: idsstr
+
+                      },
+                      success: function (response) {
+                          //var text = response.responseText;
+                          // process server response here
+
+                          showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                          if (Ext.JSON.decode(response.responseText).Result) {
+                              grid.store.load();
+                          }
+                      }
+                  });
+              }
+          })
+      }
+  });
+     
+</script>
+
+<div id="main"></div>

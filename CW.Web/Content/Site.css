@@ -1,0 +1,62 @@
+﻿/*----------------------------------------------------------
+The base color for this template is #5c87b2. If you'd like
+to use a different color start by replacing all instances of
+#5c87b2 with your new color.
+----------------------------------------------------------*/
+
+
+.title
+{
+     font-size:16px;
+     font-weight:bold;
+}
+
+#app-header {
+    background-image: -moz-linear-gradient(center top , #8FC33A, #739B2E);
+    border-bottom: 1px solid #567422;
+}
+.x-nlg #app-header {
+    background-image: url("images/header-bg.png");
+}
+#app-header-title {
+    background: url("images/logo.png") no-repeat scroll 10px 11px rgba(0, 0, 0, 0);
+    color: #FFFFFF;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 15px 10px 10px 31px;
+    text-shadow: 0 1px 0 #4E691F;
+    float:left;
+}
+#theme-switcher-combo-labelEl {
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+#north-body
+{
+    background-color:#4E691F;
+}
+
+.loginstatus
+{
+    float:right;
+    color: #FFFFFF !important;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top:-5px;
+    text-decoration:none !important;
+    cursor:pointer !important;
+ 
+}
+
+.loginstatus a
+{
+    float:right;
+    color: #FFFFFF !important;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration:none !important;
+    cursor:pointer !important;
+ 
+}
+

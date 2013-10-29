@@ -1,0 +1,621 @@
+﻿@{
+    ViewBag.Title = "User";
+}
+
+<script>
+    Ext.require(['*']);
+
+    Ext.define('model', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'company', type: 'string' },
+          { name: 'mainmanager', type: 'string' },
+          { name: 'type', type: 'string' },
+          { name: 'targetmoney', type: 'string' },
+          { name: 'bdmoney', type: 'string' },
+          { name: 'manager', type: 'string' },
+          { name: 'firstmoney', type: 'string' },
+          { name: 'firstpercentage', type: 'string' },
+          { name: 'secmoney', type: 'string' },
+          { name: 'secpercentage', type: 'string' },
+          { name: 'thrmoney', type: 'string' },
+          { name: 'thrpercentage', type: 'string' },
+          { name: 'fourmoney', type: 'string' },
+          { name: 'fourpercentage', type: 'string' },
+          { name: 'bdpercentage', type: 'string' },
+          { name: 'targetaward', type: 'string' },
+          { name: 'bdaward', type: 'string' },
+          { name: 'remark', type: 'string' }
+          ]
+    });
+
+    var companystore = new Ext.data.Store({
+
+        fields: ['abbr', 'name'],
+        data: [
+                    { "abbr": "昆山易得", "name": "昆山易得" },
+                    { "abbr": "苏州易开", "name": "苏州易开" },
+                    { "abbr": "苏州海易", "name": "苏州海易" },
+                    { "abbr": "苏州浦瑞道", "name": "苏州浦瑞道" },
+                    { "abbr": "太仓易开", "name": "太仓易开" }
+
+                ]
+    });
+
+    var projectstore = new Ext.data.Store({
+        fields: ['ID', 'name'],
+        proxy: {
+            type: 'ajax',
+            url: '/SystemManager/GetALLPushMoneySettings',
+            reader: {
+                type: 'json',
+                root: 'rows',
+                idProperty: 'ID',
+                totalProperty: 'total'
+            }
+        },
+
+        autoLoad: true//自动加载  
+    });
+
+
+    Ext.onReady(function () {
+        var columns = [//配置表格列  
+                {header: "id", dataIndex: 'ID',hidden:true },
+                { header: "单位",width:120, dataIndex: 'company' },
+                { header: "总负责人", width: 120, dataIndex: 'mainmanager' },
+                { header: "业务类型", width: 120, dataIndex: 'type' },
+                { header: "业务目标", width: 120, dataIndex: 'targetmoney' },
+                { header: "保底目标量", width: 120, dataIndex: 'bdmoney' },
+                { header: "责任人", width: 120, dataIndex: 'manager' },
+                { header: "第一季度", width: 120, dataIndex: 'firstmoney' },
+                { header: "完成比例", width: 120, dataIndex: 'firstpercentage' },
+                { header: "第二季度", width: 120, dataIndex: 'secmoney' },
+                { header: "完成比例", width: 120, dataIndex: 'secpercentage' },
+                { header: "第三季度", width: 120, dataIndex: 'thrmoney' },
+                { header: "完成比例", width: 120, dataIndex: 'thrpercentage' },
+                { header: "第四季度", width: 120, dataIndex: 'fourmoney' },
+                { header: "完成比例", width: 120, dataIndex: 'fourpercentage' },
+                { header: "保底完成比例", width: 120, dataIndex: 'bdpercentage' },
+                { header: "完成目标奖励", width: 120, dataIndex: 'targetaward' },
+                { header: "完成保底奖励", width: 120, dataIndex: 'bdaward' },
+                { header: "备注", dataIndex: 'remark' ,width: 120}
+                ];
+
+        var store = new Ext.data.Store({
+            model: 'model',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/manager/GetTarget',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: true//自动加载  
+        });
+
+      
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: false,
+            columnLines: true,
+            autoScroll: true,
+            width: 1200, 
+            height: 550,
+            selModel: Ext.create('Ext.selection.CheckboxModel'),
+            tbar: [{
+                xtype: 'button',
+                text: '新增',
+                handler: add,
+                iconCls:"Applicationadd"
+
+            }, {
+                xtype: 'button',
+                text: '修改',
+                iconCls: "Applicationedit",
+                handler: edit
+
+            }, {
+                xtype: 'button',
+                text: '删除',
+                iconCls: "Applicationdelete",
+                handler: del
+            }],
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: store, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+            store: store,
+            columns: columns
+        });
+
+        function add() {
+
+
+            var form = Ext.create('Ext.panel.Panel', {
+                border: 0,
+                id: 'userpanel',
+                bodyPadding: 5,
+                autoScroll: true,
+                layout: {
+                    type: 'vbox',       // Arrange child items vertically
+                    align: 'stretch',    // Each takes up full width
+                    padding: 5
+                },
+
+                items: [{
+                    fieldLabel: '单位',
+                    name: "company",
+                    xtype: 'combo',
+                    store: companystore,
+                    queryMode: 'local',
+                    displayField: 'name',
+                    valueField: 'abbr',
+                  
+                    value: "昆山易得",
+                    forceSelection: true
+                }, {
+                    fieldLabel: '总负责人',
+                    name: "mainmanager",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '业务种类',
+                    name: "type",
+                    xtype: 'combo',
+                    store: projectstore,
+                    queryMode: 'remote',
+                    displayField: 'name',
+                    valueField: 'name',
+         
+                    autoSelect: true
+                }, {
+                    fieldLabel: '业务目标',
+                    name: "targetmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '保底目标量',
+                    name: "bdmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '责任人',
+                    name: "manager",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '第一季度',
+                    name: "firstmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成比例',
+                    name: "firstpercentage",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '第二季度',
+                    name: "secmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成比例',
+                    name: "secpercentage",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '第三季度',
+                    name: "thrmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成比例',
+                    name: "thrpercentage",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '第四季度',
+                    name: "fourmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成比例',
+                    name: "fourpercentage",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '保底完成比例',
+                    name: "bdpercentage",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成目标奖励',
+                    name: "targetaward",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成保底奖励',
+                    name: "bdaward",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '备注',
+                    name: "remark",
+                    xtype: 'textfield'
+                }]
+            });
+
+            var win = Ext.create('Ext.window.Window', {
+                title: '新建目标',
+                collapsible: true,
+                animCollapse: true,
+                maximizable: true,
+                width: 400,
+                height: 650,
+                minWidth: 300,
+                minHeight: 200,
+                autoScroll: true,
+                layout: 'fit',
+                items: form,
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    layout: {
+                        pack: 'center'
+                    },
+                    items: [{
+                        minWidth: 80,
+                        text: '保存',
+                        iconCls: "Application",
+                        handler: adduser
+                    }, {
+                        minWidth: 80,
+                        text: '取消',
+                        iconCls: "cancel",
+                        handler: function () {
+                            win.close();
+                        }
+                    }]
+                }]
+            });
+
+            win.show();
+
+            function adduser() {
+                var temp = {};
+                var orderFrom = Ext.ComponentQuery.query('#userpanel [name=company]');
+                temp.company = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=mainmanager]');
+                temp.mainmanager = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=type]');
+                temp.type = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=targetmoney]');
+                temp.targetmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=bdmoney]');
+                temp.bdmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=manager]');
+                temp.manager = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=firstmoney]');
+                temp.firstmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=firstpercentage]');
+                temp.firstpercentage = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=secmoney]');
+                temp.secmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=secpercentage]');
+                temp.secpercentage = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=thrmoney]');
+                temp.thrmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=thrpercentage]');
+                temp.thrpercentage = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=fourmoney]');
+                temp.fourmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=fourpercentage]');
+                temp.fourpercentage = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=bdpercentage]');
+                temp.bdpercentage = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=targetaward]');
+                temp.targetaward = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=bdaward]');
+                temp.bdaward = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=remark]');
+                temp.remark = orderFrom[0].getValue();
+
+                $.ajax({
+                    url: '/manager/addtarget',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: $.toJSON({ data: temp }),
+                    contentType: 'Application/json; charset=utf-8',
+                    success: function (data) {
+
+                    }
+                }).done(function (data) {
+                    if (data.Result) {
+                        showsucmsg(data.Msg);
+                        grid.store.load();
+                        win.close();
+                    }
+                    else {
+                        showsucmsg(data.Msg);
+                    }
+                });
+            }
+        }
+
+        function edit() {
+
+            var records = grid.getSelectionModel().getSelection();
+            if (records.length > 1) {
+                showerrormsg("只能选择一行数据");
+                return;
+            }
+
+            var form = Ext.create('Ext.panel.Panel', {
+                border: 0,
+                id: 'userpanel',
+                bodyPadding: 5,
+                autoScroll: true,
+                layout: {
+                    type: 'vbox',       // Arrange child items vertically
+                    align: 'stretch',    // Each takes up full width
+                    padding: 5
+                },
+
+                items: [{
+                    fieldLabel: '单位',
+                    name: "company",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '总负责人',
+                    name: "mainmanager",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '业务种类',
+                    name: "type",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '业务目标',
+                    name: "targetmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '保底目标量',
+                    name: "bdmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '责任人',
+                    name: "manager",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '第一季度',
+                    name: "firstmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成比例',
+                    name: "firstpercentage",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '第二季度',
+                    name: "secmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成比例',
+                    name: "secpercentage",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '第三季度',
+                    name: "thrmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成比例',
+                    name: "thrpercentage",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '第四季度',
+                    name: "fourmoney",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成比例',
+                    name: "fourpercentage",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '保底完成比例',
+                    name: "bdpercentage",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成目标奖励',
+                    name: "targetaward",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '完成保底奖励',
+                    name: "bdaward",
+                    xtype: 'textfield'
+                }, {
+                    fieldLabel: '备注',
+                    name: "remark",
+                    xtype: 'textfield'
+                }]
+            });
+
+            var win = Ext.create('Ext.window.Window', {
+                title: '编辑目标',
+                collapsible: true,
+                animCollapse: true,
+                maximizable: true,
+                width: 400,
+                height: 650,
+                minWidth: 300,
+                minHeight: 200,
+                autoScroll: true,
+                layout: 'fit',
+                items: form,
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    layout: {
+                        pack: 'center'
+                    },
+                    items: [{
+                        minWidth: 80,
+                        text: '保存',
+
+                        iconCls: "Application",
+                        handler: edituser
+                    }, {
+                        minWidth: 80,
+                        text: '取消',
+                        iconCls: "Cancel",
+                        handler: function () {
+                            win.close();
+                        }
+                    }]
+                }]
+            });
+
+            win.show();
+
+            var orderFrom = Ext.ComponentQuery.query('#userpanel [name=company]');
+            orderFrom[0].setValue(records[0].get("company"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=mainmanager]');
+            orderFrom[0].setValue(records[0].get("mainmanager"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=type]');
+            orderFrom[0].setValue(records[0].get("type"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=targetmoney]');
+            orderFrom[0].setValue(records[0].get("targetmoney"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=bdmoney]');
+            orderFrom[0].setValue(records[0].get("bdmoney"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=manager]');
+            orderFrom[0].setValue(records[0].get("manager"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=firstmoney]');
+            orderFrom[0].setValue(records[0].get("firstmoney"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=firstpercentage]');
+            orderFrom[0].setValue(records[0].get("firstpercentage"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=secmoney]');
+            orderFrom[0].setValue(records[0].get("secmoney"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=secpercentage]');
+            orderFrom[0].setValue(records[0].get("secpercentage"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=thrmoney]');
+            orderFrom[0].setValue(records[0].get("thrmoney"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=thrpercentage]');
+            orderFrom[0].setValue(records[0].get("thrpercentage"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=fourmoney]');
+            orderFrom[0].setValue(records[0].get("fourmoney"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=fourpercentage]');
+            orderFrom[0].setValue(records[0].get("fourpercentage"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=bdpercentage]');
+            orderFrom[0].setValue(records[0].get("bdpercentage"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=targetaward]');
+            orderFrom[0].setValue(records[0].get("targetaward"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=bdaward]');
+            orderFrom[0].setValue(records[0].get("bdaward"));
+            orderFrom = Ext.ComponentQuery.query('#userpanel [name=remark]');
+            orderFrom[0].setValue(records[0].get("remark"));
+
+            function edituser() {
+
+                var temp = {};
+                var orderFrom = Ext.ComponentQuery.query('#userpanel [name=company]');
+                temp.company = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=mainmanager]');
+                temp.mainmanager = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=type]');
+                temp.type = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=targetmoney]');
+                temp.targetmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=bdmoney]');
+                temp.bdmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=manager]');
+                temp.manager = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=firstmoney]');
+                temp.firstmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=firstpercentage]');
+                temp.firstpercentage = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=secmoney]');
+                temp.secmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=secpercentage]');
+                temp.secpercentage = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=thrmoney]');
+                temp.thrmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=thrpercentage]');
+                temp.thrpercentage = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=fourmoney]');
+                temp.fourmoney = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=fourpercentage]');
+                temp.fourpercentage = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=bdpercentage]');
+                temp.bdpercentage = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=targetaward]');
+                temp.targetaward = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=bdaward]');
+                temp.bdaward = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#userpanel [name=remark]');
+                temp.remark = orderFrom[0].getValue();
+
+                temp.ID = records[0].get("ID");
+
+                $.ajax({
+                    url: '/manager/edittarget',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: $.toJSON({ data: temp }),
+                    contentType: 'Application/json; charset=utf-8',
+                    success: function (data) {
+
+                    }
+                }).done(function (data) {
+                    if (data.Result) {
+                        showsucmsg(data.Msg);
+                        grid.store.load();
+                        win.close();
+                    }
+                    else {
+                        showsucmsg(data.Msg);
+                    }
+                });
+            }
+        }
+
+        function del() {
+
+            var records = grid.getSelectionModel().getSelection();
+            var ids = [];
+
+            Ext.Array.each(records, function (rec) {
+                //names.push(rec.get('text'));
+                //将选中的节点的ID保存
+                ids.push(rec.get('ID'));
+            });
+            var idsstr = ids.join(",");
+
+            Ext.MessageBox.confirm("提示信息", "你确定删除吗？", function (btn) {
+                if (btn == "yes") {
+                    Ext.Ajax.request({
+                        url: '/manager/deltarget',
+                        Method: 'POST',
+                        params: {
+                            ids: idsstr
+
+                        },
+                        success: function (response) {
+                            //var text = response.responseText;
+                            // process server response here
+
+                            showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                            if (Ext.JSON.decode(response.responseText).Result) {
+                                grid.store.load();
+                            }
+                        }
+                    });
+                }
+            })
+        }
+
+        var Panel = Ext.create('Ext.panel.Panel', {
+            renderTo: 'main',
+            items: [grid],
+            layout: 'fit'
+         
+        });
+
+    });
+
+
+</script>
+
+<div id="main"></div>

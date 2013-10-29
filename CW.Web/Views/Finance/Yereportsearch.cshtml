@@ -1,0 +1,187 @@
+﻿@{
+    ViewBag.Title = "Input";
+}
+
+<script type="text/javascript">
+    var required = '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>';
+    var myMask = new Ext.LoadMask(Ext.getBody(), {
+        msg: "Please wait..."
+    });
+
+    Ext.require(['*']);
+
+    Ext.define('model', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'company', type: 'string', summaryRenderer: function () {
+              return '<b>合计:</b>';
+          } 
+          },
+          { name: 'money', type: 'float'},
+          { name: 'othermoney', type: 'float' },
+          { name: 'outmoney', type: 'float' },
+          { name: 'lr', type: 'float' },
+          { name: 'skmoney', type: 'float' },
+          { name: 'ysmoney', type: 'float' },
+          { name: 'kpmoney', type: 'float' },
+          { name: 'kpce', type: 'float' }
+
+          ]
+    });
+
+
+
+    Ext.onReady(function () {
+
+
+
+        //        fields: ['ID', 'name','company','kpname','sh','address','tel','bank','account'],
+        var columns = [//配置表格列  
+
+                {header: "公司", dataIndex: "company", summaryRenderer: function () {
+                    return '<b>合计:</b>';
+                } 
+                },
+                { header: "营业收入", dataIndex: "money", summaryType: 'sum' },
+                { header: "其他收入", dataIndex: "othermoney", summaryType: 'sum' },
+                { header: "营业支出", dataIndex: "outmoney", summaryType: 'sum' },
+                { header: "营业利润", dataIndex: "lr", summaryType: 'sum' },
+                { header: "收款金额", dataIndex: "skmoney", summaryType: 'sum' },
+                { header: "应收账款", dataIndex: "ysmoney", summaryType: 'sum' },
+                { header: "开票金额", dataIndex: "kpmoney", summaryType: 'sum' },
+                { header: "开票差额", dataIndex: "kpce", summaryType: 'sum' }
+
+
+                ];
+
+        var gstore = Ext.create('Ext.data.Store', {
+            model: 'model',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/Finance/GetCYYReport',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    extraParams: { startime: Ext.ComponentQuery.query('#multiColumnForm [name=startime]')[0] == undefined ? "" : Ext.Date.format(new Date(Ext.ComponentQuery.query('#multiColumnForm [name=startime]')[0].getValue()), 'Y-m-d H:i:s'), endtime: Ext.ComponentQuery.query('#multiColumnForm [name=endtime]')[0] == undefined ? "" : Ext.Date.format(new Date(Ext.ComponentQuery.query('#multiColumnForm [name=endtime]')[0].getValue()), 'Y-m-d H:i:s') },
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: false//自动加载  
+        });
+
+        gstore.on('beforeload', function (store, operation, eOpts) {
+            operation.params = {
+                startime: Ext.Date.format(new Date(Ext.ComponentQuery.query('#multiColumnForm [name=startime]')[0].getValue()), 'Y-m-d H:i:s'),
+                endtime: Ext.Date.format(new Date(Ext.ComponentQuery.query('#multiColumnForm [name=endtime]')[0].getValue()), 'Y-m-d H:i:s')
+            };
+
+        }, this);
+
+
+        var top = Ext.widget({
+            xtype: 'form',
+            id: 'multiColumnForm',
+            collapsible: true,
+            frame: true,
+
+            title: '营业报表查询',
+            bodyPadding: '5 5 0',
+            renderTo: 'main',
+
+            bodyBorder: 0,
+            fieldDefaults: {
+                labelWidth: 80
+            },
+            defaults: {
+                margins: '0 0 10 0'
+            },
+            items: [{
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+
+                    name: 'startime',
+                    fieldLabel: '开始时间',
+                    xtype: "datefield",
+                    allowBlank: false,
+                    flex: 1
+
+                }, {
+
+                    name: 'endtime',
+                    fieldLabel: '结束时间',
+                    xtype: "datefield",
+                    allowBlank: false,
+                    flex: 1
+
+                }]
+
+            }],
+
+            buttons: [{
+                text: '查询',
+                iconCls: "Cdgo",
+                handler: function () {
+
+
+                    orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=startime]');
+                    startime = Ext.Date.format(new Date(orderFrom[0].getValue()), 'Y-m-d H:i:s');
+                    orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=endtime]');
+                    endtime = Ext.Date.format(new Date(orderFrom[0].getValue()), 'Y-m-d H:i:s');
+
+
+                    gstore.load({
+                        params: { startime: startime, endtime: endtime }
+
+                    });
+                }
+            }]
+        });
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: true,
+            features: [{
+                ftype: 'summary'//Ext.grid.feature.Summary表格汇总特性
+            }],
+            columnLines: true,
+            title: "营业报表",
+            store: gstore,
+            renderTo: 'detail',
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: gstore, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+
+            columns: columns
+        });
+
+
+    });
+   
+
+
+</script>
+<div id="main">
+
+</div>
+<div id="detail">
+
+</div>

@@ -1,0 +1,238 @@
+﻿@{
+    ViewBag.Title = "Input";
+}
+
+<script type="text/javascript">
+    var required = '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>';
+    var myMask = new Ext.LoadMask(Ext.getBody(), {
+        msg: "Please wait..."
+    });
+
+    Ext.require(['*']);
+
+    Ext.define('model', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'company', type: 'string' },
+          { name: 'yymoney', type: 'float' },
+          { name: 'gzjl', type: 'float' },
+          { name: 'fl', type: 'float' },
+          { name: 'cl', type: 'float' },
+          { name: 'bg', type: 'float' },
+          { name: 'fzwy', type: 'float' },
+          { name: 'yd', type: 'float' },
+          { name: 'yw', type: 'float' },
+          { name: 'zd', type: 'float' },
+          { name: 'bgzc', type: 'float' },
+          { name: 'wl', type: 'float' },
+          { name: 'other', type: 'float' },
+          { name: 'xj', type: 'float' },
+          { name: 'hd', type: 'float' },
+          { name: 'cd', type: 'float' },
+          { name: 'cdbz', type: 'float' },
+          { name: 'mtdl', type: 'float' },
+          { name: 'xj2', type: 'float' },
+          { name: 'hj', type: 'float' },
+          { name: 'gzjjl', type: 'float' },
+          { name: 'clf', type: 'float' },
+          { name: 'bgf', type: 'float' },
+          { name: 'ywf', type: 'float' },
+          { name: 'sbf', type: 'float' },
+          { name: 'ydf', type: 'float' },
+          { name: 'bzf', type: 'float' },
+          { name: 'other2', type: 'float' },
+          { name: 'xj3', type: 'float' },
+          { name: 'hd2', type: 'float' },
+          { name: 'cd2', type: 'float' },
+          { name: 'cdbz2', type: 'float' },
+          { name: 'mtdl2', type: 'float' },
+          { name: 'xj4', type: 'float' },
+          { name: 'yhsxf', type: 'float' },
+          { name: 'lxsz', type: 'float' },
+          { name: 'xj5', type: 'float' },
+          { name: 'yxs', type: 'float' },
+          { name: 'qysds', type: 'float' },
+          { name: 'hj2', type: 'float' },
+          { name: 'zhj', type: 'float' }
+          ]
+    });
+
+
+
+    Ext.onReady(function () {
+
+
+
+        //        fields: ['ID', 'name','company','kpname','sh','address','tel','bank','account'],
+        var columns = [//配置表格列  
+
+                {header: "公司", dataIndex: "company", summaryRenderer: function () {
+                    return '<b>合计:</b>';
+                } 
+            },
+                {header:"现金支出",columns:[  { header: "营业费用", dataIndex: "yymoney", summaryType: 'sum' },
+                { header: "工资及奖金", dataIndex: "gzjl", summaryType: 'sum' },
+                { header: "福利费", dataIndex: "fl", summaryType: 'sum' },
+                { header: "差旅费", dataIndex: "cl", summaryType: 'sum' },
+                { header: "办公费", dataIndex: "bg", summaryType: 'sum' },
+                { header: "房租及物业费", dataIndex: "fzwy", summaryType: 'sum' },
+                { header: "邮电费", dataIndex: "yd", summaryType: 'sum' },
+                { header: "业务费", dataIndex: "yw", summaryType: 'sum' },
+                { header: "招待费", dataIndex: "zd", summaryType: 'sum' },
+                { header: "办公资产", dataIndex: "bgzc", summaryType: 'sum' },
+                { header: "布展物料", dataIndex: "wl", summaryType: 'sum' },
+                { header: "其他", dataIndex: "other", summaryType: 'sum' },
+                { header: "小计", dataIndex: "xj", summaryType: 'sum' },
+                { header: "活动费", dataIndex: "hd", summaryType: 'sum' },
+                { header: "场地费", dataIndex: "cd", summaryType: 'sum' },
+                { header: "场地布展费", dataIndex: "cdbz", summaryType: 'sum' },
+                { header: "媒体代理", dataIndex: "mtdl", summaryType: 'sum' },
+                { header: "小计", dataIndex: "xj2", summaryType: 'sum' },
+                { header: "合计", dataIndex: "hj", summaryType: 'sum'}]
+                },
+                { header: "银行支出", columns: [{ header: "工资及奖金", dataIndex: "gzjjl", summaryType: 'sum' },
+                { header: "差旅费", dataIndex: "clf", summaryType: 'sum' },
+                { header: "办公费", dataIndex: "bgf", summaryType: 'sum' },
+                { header: "业务费", dataIndex: "ywf", summaryType: 'sum' },
+                { header: "社保费", dataIndex: "sbf", summaryType: 'sum' },
+                { header: "邮电费", dataIndex: "ydf", summaryType: 'sum' },
+                { header: "布展物料", dataIndex: "bzf", summaryType: 'sum' },
+                { header: "其他", dataIndex: "other2", summaryType: 'sum' },
+                { header: "小计", dataIndex: "xj3", summaryType: 'sum' },
+                { header: "活动费", dataIndex: "hd2", summaryType: 'sum' },
+                { header: "场地费", dataIndex: "cd2", summaryType: 'sum' },
+                { header: "场地布展费", dataIndex: "cdbz2", summaryType: 'sum' },
+                { header: "媒体代理", dataIndex: "mtdl2", summaryType: 'sum' },
+                { header: "小计", dataIndex: "xj4", summaryType: 'sum' },
+                { header: "银行手续费", dataIndex: "yhsxf", summaryType: 'sum' },
+                { header: "利息收支", dataIndex: "lxsz", summaryType: 'sum' },
+                { header: "小计", dataIndex: "xj5", summaryType: 'sum' },
+                { header: "主营业务税金及附加", dataIndex: "yxs", summaryType: 'sum' },
+                { header: "企业所得税", dataIndex: "qysds", summaryType: 'sum' },
+                { header: "合计", dataIndex: "hj2", summaryType: 'sum' } ]
+                },
+              
+                { header: "总合计", dataIndex: "zhj", summaryType: 'sum' }
+                ];
+
+        var gstore = Ext.create('Ext.data.Store', {
+            model: 'model',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/Finance/sysreportsearch',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    extraParams: { time: Ext.ComponentQuery.query('#multiColumnForm [name=time]')[0] == undefined ? "" : Ext.Date.format(new Date(Ext.ComponentQuery.query('#multiColumnForm [name=time]')[0].getValue()), 'Y-m-d H:i:s') },
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: false//自动加载  
+        });
+
+        gstore.on('beforeload', function (store, operation, eOpts) {
+            operation.params = {
+                time: Ext.Date.format(new Date(Ext.ComponentQuery.query('#multiColumnForm [name=time]')[0].getValue()), 'Y-m-d H:i:s')
+            };
+
+        }, this);
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: false,
+            features: [{
+                ftype: 'summary'//Ext.grid.feature.Summary表格汇总特性
+            }],
+            height:400,
+            autoScroll: true,
+            columnLines: true,
+            title: "详细报表",
+            store: gstore,
+            renderTo: 'detail',
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: gstore, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+
+            columns: columns
+        });
+
+        var top = Ext.widget({
+            xtype: 'form',
+            id: 'multiColumnForm',
+            collapsible: true,
+            frame: true,
+
+            title: '详细报表查询',
+            bodyPadding: '5 5 0',
+            renderTo: 'main',
+
+            bodyBorder: 0,
+            fieldDefaults: {
+                labelWidth: 80
+            },
+            defaults: {
+                margins: '0 0 10 0'
+            },
+            items: [{
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+
+                    name: 'time',
+                    fieldLabel: '日期',
+                    xtype: "datefield",
+                    allowBlank: false,
+                    width: 300
+
+                }]
+
+            }],
+
+            buttons: [{
+                text: '查询',
+                iconCls: "Cdgo",
+                handler: function () {
+
+
+                    orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=time]');
+                    var time = Ext.Date.format(new Date(orderFrom[0].getValue()), 'Y-m-d H:i:s');
+
+
+
+                    gstore.load({
+                        params: { time: time }
+
+                    });
+
+                }
+            }]
+        });
+    });
+   
+
+
+</script>
+<div id="main">
+
+</div>
+<div id="detail">
+
+</div>

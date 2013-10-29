@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7CEC119A-DFA5-4BD6-9FB5-ED4B9AC4DC29}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CW.InterFace</RootNamespace>
+    <AssemblyName>CW.InterFace</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="IBudget.cs" />
+    <Compile Include="IBudgetDetail.cs" />
+    <Compile Include="IBusinessMoneyRequest.cs" />
+    <Compile Include="IBusinessMoneyRequestDetail.cs" />
+    <Compile Include="IBusinessPayRequest.cs" />
+    <Compile Include="ICommonPayment.cs" />
+    <Compile Include="ICommonPaymentDetail.cs" />
+    <Compile Include="ICustomer.cs" />
+    <Compile Include="IJxTarget.cs" />
+    <Compile Include="IKp.cs" />
+    <Compile Include="IKpType.cs" />
+    <Compile Include="ILog.cs" />
+    <Compile Include="IMenu.cs" />
+    <Compile Include="IMoneyReport.cs" />
+    <Compile Include="IOrder.cs" />
+    <Compile Include="IOrderTzRequest.cs" />
+    <Compile Include="IPaymentRequestDetail.cs" />
+    <Compile Include="IPushMoneySetting.cs" />
+    <Compile Include="IReceiveMoney.cs" />
+    <Compile Include="IRole.cs" />
+    <Compile Include="ISystemReport.cs" />
+    <Compile Include="ITargetAward.cs" />
+    <Compile Include="IUser.cs" />
+    <Compile Include="IPaymentRequest.cs" />
+    <Compile Include="IUserJx.cs" />
+    <Compile Include="IYYReport.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CW.Core\CW.Core.csproj">
+      <Project>{9DF50A5B-4EEF-4089-BA5B-965DB0DD8653}</Project>
+      <Name>CW.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CW.Model\CW.Model.csproj">
+      <Project>{6817EFBD-9666-4611-957A-FD15AE3135BA}</Project>
+      <Name>CW.Model</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

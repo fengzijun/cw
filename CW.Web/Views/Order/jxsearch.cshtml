@@ -1,0 +1,93 @@
+﻿@{
+    ViewBag.Title = "User";
+}
+
+<script>
+    Ext.require(['*']);
+
+    Ext.define('jx', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'company', type: 'string' },
+          { name: 'mainmanager', type: 'string' },
+          { name: 'type', type: 'string' },
+          { name: 'targetmoney', type: 'string' },
+          { name: 'bdmoney', type: 'string' },
+          { name: 'manager', type: 'string' },
+          { name: 'firstmoney', type: 'string' },
+          { name: 'firstpercentage', type: 'string' },
+          { name: 'secmoney', type: 'string' },
+          { name: 'secpercentage', type: 'string' },
+          { name: 'thrmoney', type: 'string' },
+          { name: 'thrpercentage', type: 'string' },
+          { name: 'fourmoney', type: 'string' },
+          { name: 'fourpercentage', type: 'string' },
+          { name: 'bdpercentage', type: 'string' },
+          { name: 'targetaward', type: 'string' },
+          { name: 'bdaward', type: 'string' },
+          { name: 'remark', type: 'string' }
+       
+          ]
+    });
+
+    Ext.onReady(function () {
+        var columns = [//配置表格列  
+                {header: "id", dataIndex: 'ID', hidden: true },
+                { header: "单位", dataIndex: 'company' },
+                { header: "业务种类", dataIndex: 'type' },
+                { header: "第一季度", dataIndex: 'firstmoney' },
+                { header: "完成比例", dataIndex: 'firstpercentage' },
+                { header: "第二季度", dataIndex: 'secmoney' },
+                { header: "完成比例", dataIndex: 'secpercentage' },
+                { header: "第三季度", dataIndex: 'thrmoney' },
+                { header: "完成比例", dataIndex: 'thrpercentage' },
+                { header: "第四季度", dataIndex: 'fourmoney' },
+                { header: "完成比例", dataIndex: 'fourpercentage' }
+                ];
+
+        var store = new Ext.data.Store({
+            model: 'jx',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/manager/GetTarget',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: true//自动加载  
+        });
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: true,
+            columnLines: true,
+
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: store, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+            store: store,
+            renderTo: 'main',
+            columns: columns
+        });
+
+     
+
+      
+
+      
+    });
+
+
+</script>
+
+<div id="main"></div>

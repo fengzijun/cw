@@ -1,0 +1,748 @@
+﻿@{
+    ViewBag.Title = "Input";
+}
+
+<script type="text/javascript">
+    var required = '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>';
+    var myMask = new Ext.LoadMask(Ext.getBody(), {
+        msg: "Please wait..."
+    });
+
+    Ext.require(['*']);
+
+    var companystore = new Ext.data.Store({
+
+        fields: ['abbr', 'name'],
+        data: [
+                    { "abbr": "昆山易得", "name": "昆山易得" },
+                    { "abbr": "苏州易开", "name": "苏州易开" },
+                    { "abbr": "苏州海易", "name": "苏州海易" },
+                    { "abbr": "苏州浦瑞道", "name": "苏州浦瑞道" },
+                    { "abbr": "太仓易开", "name": "太仓易开" }
+
+                ]
+    });
+
+    Ext.define('order', {
+        extend: 'Ext.data.Model',
+        fields: [
+          { name: 'ID', type: 'string' },
+          { name: 'name', type: 'string' },
+          { name: 'company', type: 'string' },
+          { name: 'customername', type: 'string' },
+          { name: 'projectcontent', type: 'string' },
+          { name: 'orderno', type: 'string' },
+          { name: 'money', type: 'string' },
+          { name: 'customershortname', type: 'string' },
+          { name: 'time', type: 'string' },
+          { name: 'balance', type: 'string' },
+          { name: 'balancereduce', type: 'string' },
+          { name: 'balancereducereason', type: 'string' },
+          { name: 'isht', type: 'string' },
+          { name: 'iskp', type: 'string' },
+          { name: 'other', type: 'string' },
+          { name: 'remark', type: 'string' },
+          { name: 'managercheck', type: 'string' },
+          { name: 'cwcheck', type: 'string' },
+          { name: 'zk', type: 'string' },
+          { name: 'jsz', type: 'string' },
+          { name: 'ml', type: 'string' },
+          { name: 'lr', type: 'string' },
+          { name: 'iszd', type: 'string' },
+          { name: 'parentorderno', type: 'string' },
+          { name: 'shouldmoney', type: 'string' },
+          { name: 'havemoney', type: 'string' },
+          { name: 'nothavemoney', type: 'string' },
+          { name: 'havemoneypercentage', type: 'string' },
+          { name: 'actualmoney', type: 'string' },
+          { name: 'managercheck', type: 'string' },
+          { name: 'cwcheck', type: 'string' }
+          ]
+    });
+
+    var customstore = new Ext.data.Store({
+        fields: ['ID', 'name'],
+        proxy: {
+            type: 'ajax',
+            url: '/manager/GetAllCustomers',
+            reader: {
+                type: 'json',
+                root: 'rows',
+                idProperty: 'ID',
+                totalProperty: 'total'
+            }
+        },
+
+        autoLoad: true//自动加载  
+    });
+
+    var projectstore = new Ext.data.Store({
+        fields: ['ID', 'name'],
+        proxy: {
+            type: 'ajax',
+            url: '/SystemManager/GetALLPushMoneySettings',
+            reader: {
+                type: 'json',
+                root: 'rows',
+                idProperty: 'ID',
+                totalProperty: 'total'
+            }
+        },
+
+        autoLoad: true//自动加载  
+    });
+
+
+
+    Ext.onReady(function () {
+
+
+        var top = Ext.widget({
+            xtype: 'form',
+            id: 'multiColumnForm',
+            collapsible: true,
+            frame: true,
+            title: '订单录入',
+            bodyPadding: '5 5 0',
+            renderTo: 'main',
+
+            bodyBorder: 0,
+            fieldDefaults: {
+                labelWidth: 80
+            },
+            defaults: {
+                margins: '0 0 10 0'
+            },
+            items: [{
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+
+                    fieldLabel: '项目类型',
+                    name: "name",
+                    xtype: 'combo',
+                    store: projectstore,
+                    queryMode: 'remote',
+                    displayField: 'name',
+                    valueField: 'name',
+                    flex: 1,
+                    autoSelect: true
+
+                }, {
+
+                    fieldLabel: '项目名称',
+                    name: "projectcontent",
+                    flex: 1,
+                    allowBlank: false
+
+                }, {
+                    flex: 1,
+                    name: 'company',
+                    fieldLabel: '所属公司',
+                    xtype: 'combo',
+                    store: companystore,
+                    queryMode: 'local',
+                    displayField: 'name',
+                    valueField: 'abbr',
+                    flex: 1,
+                    value: "昆山易得",
+                    forceSelection: true
+
+                }]
+            }, {
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+
+                    name: 'customername',
+                    fieldLabel: '客户名称',
+                    flex: 1,
+                    allowBlank: false
+
+                }, {
+                    id: 'parentorderno',
+                    name: 'parentorderno',
+                    fieldLabel: '总订单编号',
+                    flex: 1,
+                    allowBlank: false
+
+                }, {
+
+                    name: 'btnorderno',
+                    text: '生成子订单编号',
+                    xtype: "button",
+                    iconCls: "Cdgo",
+                    handler: function () {
+                        //Ext.getCmp("orderno").setValue(getcurrentorderno());
+                        var parentorderno = this.up('form').getForm().findField("parentorderno").getValue();
+                        var self = this;
+                        $.ajax({
+                            url: '/order/getchildorderno',
+                            type: 'POST',
+                            dataType: 'json',
+                            data: $.toJSON({ parentorderno: parentorderno }),
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (data) {
+                                self.up('form').getForm().findField("orderno").setValue(data);
+
+                            }
+                        })
+                    },
+                    allowBlank: false
+
+                }, {
+                    id: 'orderno',
+                    name: 'orderno',
+                    fieldLabel: '子订单编号',
+                    flex: 1,
+                    allowBlank: false
+
+                }]
+            }, {
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+                    name: 'money',
+                    fieldLabel: '业务金额',
+                    allowBlank: false,
+                    flex: 1
+
+                }, {
+
+                    fieldLabel: '客户简称（品牌）',
+                    name: "customershortname",
+                    labelWidth: 120,
+                    xtype: 'combo',
+                    store: customstore,
+                    queryMode: 'remote',
+                    displayField: 'name',
+                    valueField: 'name',
+                    flex: 1,
+                    autoSelect: true
+
+                }, {
+
+                    name: 'time',
+                    fieldLabel: '项目时间',
+                    xtype: "datefield",
+                    allowBlank: false,
+                    flex: 2
+
+                }]
+            }, {
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+                    name: 'balance',
+                    fieldLabel: '业务费',
+                    allowBlank: false,
+                    flex: 1
+
+                }, {
+
+                    name: 'isht',
+                    fieldLabel: '是否合同',
+                    allowBlank: false,
+                    xtype: "checkbox",
+                    flex: 1
+
+                }, {
+
+                    name: 'iskp',
+                    fieldLabel: '是否开票',
+                    xtype: "checkbox",
+                    allowBlank: false,
+                    flex: 2
+
+                }]
+            }, {
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+                    name: 'other',
+                    fieldLabel: '其他说明',
+                    allowBlank: true,
+                    flex: 1
+
+                }]
+            }, {
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+                    name: 'remark',
+                    fieldLabel: '业务摘要',
+                    allowBlank: true,
+                    flex: 1
+
+                }]
+
+            }],
+
+            buttons: [{
+                text: '保存',
+                iconCls: "Application",
+                handler: function () {
+                    if (this.up('form').getForm().isValid()) {
+                        var self = this;
+                        //alert(Ext.JSON.encode(this.up('form').getForm().getValues()));
+                        var name = this.up('form').getForm().findField("name").getValue();
+                        var company = this.up('form').getForm().findField("company").getValue();
+                        var customername = this.up('form').getForm().findField("customername").getValue();
+                        var orderno = this.up('form').getForm().findField("orderno").getValue();
+                        var money = this.up('form').getForm().findField("money").getValue();
+                        var customershortname = this.up('form').getForm().findField("customershortname").getValue();
+                        var time = this.up('form').getForm().findField("time").getValue();
+                        var balance = this.up('form').getForm().findField("balance").getValue();
+                        var isht = this.up('form').getForm().findField("isht").getValue();
+                        var iskp = this.up('form').getForm().findField("iskp").getValue();
+                        var other = this.up('form').getForm().findField("other").getValue();
+                        var remark = this.up('form').getForm().findField("remark").getValue();
+                        var projectcontent = this.up('form').getForm().findField("projectcontent").getValue();
+                        var parentorderno = this.up('form').getForm().findField("parentorderno").getValue();
+
+                        myMask.show();
+                        Ext.Ajax.request({
+                            url: '/order/ChildInput',
+                            Method: 'POST',
+                            loadMask: { msg: 'please wait...' },
+                            params: {
+                                name: name,
+                                company: company,
+                                customername: customername,
+                                orderno: orderno,
+                                money: money,
+                                customershortname: customershortname,
+                                projectcontent: projectcontent,
+                                time: time,
+                                balance: balance,
+                                isht: isht,
+                                iskp: iskp,
+                                other: other,
+                                remark: remark,
+                                parentorderno: parentorderno
+                            },
+                            success: function (response) {
+                                myMask.hide();
+                                showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                                if (Ext.JSON.decode(response.responseText).Result) {
+                                    self.up('form').getForm().reset();
+                                    gstore.load();
+                                }
+                            }
+                        });
+                    }
+                }
+            }, {
+                text: '重置',
+                iconCls: "Cancel",
+                handler: function () {
+                    this.up('form').getForm().reset();
+                }
+            }]
+        });
+
+        var gstore = Ext.create('Ext.data.Store', {
+            model: 'order',
+            pageSize: 5,
+            proxy: {
+                type: 'ajax',
+                url: '/order/GetUserOrder',
+                reader: {
+                    type: 'json',
+                    root: 'rows',
+                    idProperty: 'ID',
+                    totalProperty: 'total'
+                }
+            },
+
+            autoLoad: true//自动加载  
+        });
+
+        var columns = [//配置表格列  
+
+                {header: "订单编号", dataIndex: "orderno" },
+                { header: "主单编号", dataIndex: "parentorderno" },
+                { header: "客户名称", dataIndex: "customername" },
+                { header: "客户名称（简称）", dataIndex: "customershortname" },
+                { header: "项目名称", dataIndex: "name" },
+                { header: "合同金额", dataIndex: "money" },
+                { header: "业务费", dataIndex: "balance" },
+                { header: "审核是否通过", renderer: function (value, metaData, record, row, col, store, gridView) {
+                    if (record.get("managercheck") == "false") {
+                        return "<img src='/content/images/cross.gif'/>";
+                    }
+                    else {
+                        return "<img src='/content/images/accept.gif'/>";
+                    }
+                }
+                }
+
+
+                ];
+
+        var grid = Ext.create('Ext.grid.Panel', {
+            frame: true,
+            forceFit: true,
+            columnLines: true,
+            title: "我的订单",
+            store: gstore,
+            selModel: Ext.create('Ext.selection.CheckboxModel'),
+            renderTo: 'detail',
+            dockedItems: [{
+                xtype: 'pagingtoolbar',
+                store: gstore, // same store GridPanel is  
+                // using  
+                dock: 'bottom',
+                displayInfo: true
+            }],
+            tbar: [{
+                xtype: 'button',
+                text: '修改',
+                iconCls: "Applicationedit",
+                handler: orderedit
+
+            }, {
+                xtype: 'button',
+                text: '删除',
+                iconCls: "Applicationdelete",
+                handler: orderdel
+            }],
+            renderTo: "myorder",
+            columns: columns
+        });
+
+        //编辑订单
+        function orderedit() {
+            var records = grid.getSelectionModel().getSelection();
+            if (records.length != 1) {
+                showerrormsg("请选择一行数据");
+                return;
+            }
+
+            var form = Ext.create('Ext.panel.Panel', {
+                border: 0,
+                id: 'orderpanel',
+                bodyPadding: 5,
+                autoScroll: true,
+                layout: {
+                    type: 'vbox',       // Arrange child items vertically
+                    align: 'stretch',    // Each takes up full width
+                    padding: 5
+                },
+
+                items: [{
+                    fieldLabel: '项目名称',
+                    name: "name",
+                    xtype: 'combo',
+                    store: projectstore,
+                    queryMode: 'remote',
+                    displayField: 'name',
+                    valueField: 'name',
+                    autoSelect: true
+                }, {
+                    fieldLabel: '项目内容',
+                    name: "projectcontent",
+                    xtype: "textfield",
+                    allowBlank: false
+                }, {
+                    name: 'company',
+                    fieldLabel: '所属公司',
+                    xtype: 'combo',
+                    store: companystore,
+                    queryMode: 'local',
+                    displayField: 'name',
+                    valueField: 'abbr',
+                    value: "昆山易得",
+                    forceSelection: true
+                }, {
+                    name: 'customername',
+                    xtype: "textfield",
+                    fieldLabel: '客户名称',
+                    allowBlank: false
+                }, {
+                    name: 'money',
+                    fieldLabel: '业务金额',
+                    xtype: "textfield",
+                    allowBlank: false
+
+                }, {
+                    fieldLabel: '客户简称',
+                    name: "customershortname",
+                    xtype: 'combo',
+                    store: customstore,
+                    queryMode: 'remote',
+                    displayField: 'name',
+                    valueField: 'name',
+                    autoSelect: true
+
+                }, {
+                    name: 'time',
+                    fieldLabel: '项目时间',
+                    xtype: "datefield",
+                    allowBlank: false
+                }, {
+                    name: 'balance',
+                    fieldLabel: '业务费',
+                    xtype: "textfield",
+                    allowBlank: false
+
+                }, {
+                    name: 'isht',
+                    fieldLabel: '是否合同',
+                    allowBlank: false,
+
+                    xtype: "checkbox"
+                }, {
+                    name: 'iskp',
+                    fieldLabel: '是否开票',
+                    xtype: "checkbox"
+
+                }, {
+                    name: 'other',
+                    xtype: "textfield",
+                    fieldLabel: '其他说明',
+                    allowBlank: true
+
+
+                }, {
+                    name: 'remark',
+                    xtype: "textfield",
+                    fieldLabel: '业务摘要',
+                    allowBlank: true
+                }]
+            });
+
+            var win = Ext.create('Ext.window.Window', {
+                title: '编辑订单',
+                collapsible: true,
+                animCollapse: true,
+                maximizable: true,
+                width: 400,
+                height: 450,
+                minWidth: 300,
+                minHeight: 200,
+                autoScroll: true,
+                layout: 'fit',
+                items: form,
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    layout: {
+                        pack: 'center'
+                    },
+                    items: [{
+                        minWidth: 80,
+                        text: '保存',
+
+                        iconCls: "Application",
+                        handler: editorderpost
+                    }, {
+                        minWidth: 80,
+                        text: '取消',
+                        iconCls: "Cancel",
+                        handler: function () {
+                            win.close();
+                        }
+                    }]
+                }]
+            });
+
+            win.show();
+
+            var orderFrom = Ext.ComponentQuery.query('#orderpanel [name=name]');
+            orderFrom[0].setValue(records[0].get("name"));
+            orderFrom = Ext.ComponentQuery.query('#orderpanel [name=projectcontent]');
+            orderFrom[0].setValue(records[0].get("projectcontent"));
+            orderFrom = Ext.ComponentQuery.query('#orderpanel [name=company]');
+            orderFrom[0].setValue(records[0].get("company"));
+            orderFrom = Ext.ComponentQuery.query('#orderpanel [name=customername]');
+            orderFrom[0].setValue(records[0].get("customername"));
+            orderFrom = Ext.ComponentQuery.query('#orderpanel [name=money]');
+            orderFrom[0].setValue(records[0].get("money"));
+            orderFrom = Ext.ComponentQuery.query('#orderpanel [name=customershortname]');
+            orderFrom[0].setValue(records[0].get("customershortname"));
+            orderFrom = Ext.ComponentQuery.query('#orderpanel [name=time]');
+
+            orderFrom[0].setValue(new Date(records[0].get("time")));
+
+            orderFrom = Ext.ComponentQuery.query('#orderpanel [name=balance]');
+            orderFrom[0].setValue(records[0].get("balance"));
+            orderFrom = Ext.ComponentQuery.query('#orderpanel [name=isht]');
+            orderFrom[0].setValue(records[0].get("isht"));
+            orderFrom = Ext.ComponentQuery.query('#orderpanel [name=iskp]');
+            orderFrom[0].setValue(records[0].get("iskp"));
+            orderFrom = Ext.ComponentQuery.query('#orderpanel [name=other]');
+            orderFrom[0].setValue(records[0].get("other"));
+            orderFrom = Ext.ComponentQuery.query('#orderpanel [name=remark]');
+            orderFrom[0].setValue(records[0].get("remark"));
+
+
+            function editorderpost() {
+
+                var temp = {};
+                var orderFrom = Ext.ComponentQuery.query('#orderpanel [name=name]');
+                temp.name = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#orderpanel [name=projectcontent]');
+                temp.projectcontent = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#orderpanel [name=company]');
+                temp.company = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#orderpanel [name=customername]');
+                temp.customername = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#orderpanel [name=money]');
+                temp.money = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#orderpanel [name=customershortname]');
+                temp.customershortname = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#orderpanel [name=time]');
+                temp.time = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#orderpanel [name=balance]');
+                temp.balance = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#orderpanel [name=isht]');
+
+                temp.isht = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#orderpanel [name=iskp]');
+                temp.iskp = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#orderpanel [name=other]');
+                temp.other = orderFrom[0].getValue();
+                orderFrom = Ext.ComponentQuery.query('#orderpanel [name=remark]');
+                temp.remark = orderFrom[0].getValue();
+
+
+                temp.ID = records[0].get("ID");
+
+                $.ajax({
+                    url: '/order/editorder',
+                    type: 'POST',
+
+                    dataType: 'json',
+                    data: $.toJSON({ order: temp }),
+                    contentType: 'Application/json; charset=utf-8',
+                    success: function (data) {
+
+                    }
+                }).done(function (data) {
+                    if (data.Result) {
+                        showsucmsg(data.Msg);
+
+                        gstore.removeAll();
+                        gstore.load();
+                        win.close();
+                    }
+                    else {
+                        showsucmsg(data.Msg);
+                    }
+                });
+            }
+        }
+
+        function orderdel() {
+            var records = grid.getSelectionModel().getSelection();
+            if (records == undefined || records.length == 0) {
+                showerrormsg("请选择一行数据");
+                return;
+            }
+            var ids = [];
+
+            Ext.Array.each(records, function (rec) {
+                //names.push(rec.get('text'));
+                //将选中的节点的ID保存
+                ids.push(rec.get('ID'));
+            });
+            var idsstr = ids.join(",");
+
+            Ext.MessageBox.confirm("提示信息", "你确定删除吗？", function (btn) {
+                if (btn == "yes") {
+                    Ext.Ajax.request({
+                        url: '/order/deleteorder',
+                        Method: 'POST',
+                        params: {
+                            ids: idsstr
+
+                        },
+                        success: function (response) {
+                            //var text = response.responseText;
+                            // process server response here
+
+                            showsucmsg(Ext.JSON.decode(response.responseText).Msg);
+                            if (Ext.JSON.decode(response.responseText).Result) {
+                                grid.store.load();
+                            }
+                        }
+                    });
+                }
+            })
+        }
+
+
+    });
+   
+
+
+</script>
+<div id="main">
+
+</div>
+
+<div id="myorder">
+
+</div>
