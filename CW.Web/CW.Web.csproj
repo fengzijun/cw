@@ -15334,6 +15334,7 @@
     <None Include="Scripts\extjs\resources\ext-theme-classic-sandbox\Readme.md" />
     <None Include="Scripts\extjs\resources\ext-theme-classic\Readme.md" />
     <None Include="Scripts\extjs\resources\ext-theme-gray\Readme.md" />
+    <Content Include="Scripts\extjs\resources\ext-theme-neptune\ext-theme-neptune.zip" />
     <None Include="Scripts\extjs\resources\ext-theme-neptune\icons\Thumbs.db" />
     <None Include="Scripts\extjs\resources\ext-theme-neptune\Readme.md" />
     <None Include="Scripts\extjs\version.properties" />
