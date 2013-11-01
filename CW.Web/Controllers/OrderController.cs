@@ -313,7 +313,7 @@ namespace CW.Web.Controllers
                 data.customershortname = order.customershortname;
                 data.customername = order.customername;
                 data.ywuser = UserName;
-                data.bcmoney = order.money.Value - (kpmoney + data.money.Value);//补差金额 =  合同金额减去所有的开票金额
+                data.bcmoney = (order.money.Value - (kpmoney + data.money.Value)) > 0 ? 0 : (order.money.Value - (kpmoney + data.money.Value));//补差金额 =  合同金额减去所有的开票金额
                 data.bjsj = data.bcmoney * (decimal)0.17;
                 Guid result = kpds.Create(data);
                  CWResponse res  = null;
@@ -339,6 +339,45 @@ namespace CW.Web.Controllers
                 return Json(new CWResponse {  Msg ="创建失败", Result = false }, JsonRequestBehavior.AllowGet);
             }
         }
+
+        [HttpPost]
+        public JsonResult GetKpBcAndBj(string orderno,decimal money)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(orderno))
+                {
+                    return Json(new CWResponse { Result = false, Msg = "不存在该订单号" }, JsonRequestBehavior.AllowGet);
+                }
+
+                var kpds = DataServiceContainer.Self.GetService<IKp>();
+                var orderds = DataServiceContainer.Self.GetService<IOrder>();
+                PaginationInfo paging = new PaginationInfo();
+
+                IList<Order> orderlist = orderds.Get(null, orderno, null, null, null, null, null, 1, 0, null, out paging);
+                if (orderlist == null || orderlist.Count == 0)
+                {
+                    return Json(new CWResponse { Result = false, Msg = "不存在该订单号" }, JsonRequestBehavior.AllowGet);
+                }
+                Order order = orderlist[0];
+                IList<Kp> kps = kpds.Get(null, order.orderno, null, null, null, null, null, null, 1, 0, null, out paging);
+                decimal kpmoney = 0;
+                foreach (Kp k in kps)
+                {
+                    kpmoney += k.money.Value;
+                }
+
+                decimal bcmoney = (order.money.Value - (kpmoney + money)) > 0 ? 0 : (order.money.Value - (kpmoney + money));
+                decimal bjsj = bcmoney * (decimal)0.17;
+
+                return Json(new { bjsj = bjsj, bcmoney = bcmoney, Result = true }, JsonRequestBehavior.AllowGet);
+            }
+            catch
+            {
+                return Json(new CWResponse { Result = false, Msg = "输入格式错误" }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
 
         public JsonResult GetKpDetail(string orderno,int? page)
         {
@@ -553,6 +592,52 @@ namespace CW.Web.Controllers
         }
 
         [HttpPost]
+        public ActionResult ywtc_requireinfo(string orderno)
+        {
+            var ds = DataServiceContainer.Self.GetService<IBusinessMoneyRequest>();
+            var detailds = DataServiceContainer.Self.GetService<IBusinessMoneyRequestDetail>();
+            var orderds = DataServiceContainer.Self.GetService<IOrder>();
+            var pushmoneysettingds = DataServiceContainer.Self.GetService<IPushMoneySetting>();
+            var szds = DataServiceContainer.Self.GetService<IReceiveMoney>();
+            PaginationInfo paging = new PaginationInfo();
+            Order order = orderds.GetByOrderno(orderno);
+            if (order == null)
+            {
+                return Json(new CWResponse { Msg = "找不到订单号", Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            IList<ReceiveMoney> szlist = szds.Get(orderno, 1, 0, null, out paging);
+            decimal revemoney = 0;
+            DateTime? sktime = null;
+            foreach (ReceiveMoney sz in szlist)
+            {
+                revemoney += sz.money.Value;
+                if (!sktime.HasValue || DateTime.Parse(sz.time) > sktime.Value)
+                {
+                    sktime = DateTime.Parse(sz.time);
+                }
+            }
+          
+            PushMoneySetting pushmoneysetting = pushmoneysettingds.GetByName(order.name);
+            int overday = DateTime.Now.Subtract(DateTime.Parse(order.time)).Days;
+            decimal businessmoney = 0;
+            if (overday > 180)
+            {
+                businessmoney = 0;
+            }
+            else if (overday > 90 && overday <=180 )
+            {
+                businessmoney = order.money.Value * Convert.ToDecimal(pushmoneysetting.percentage.Replace("%", "")) * (decimal)0.01 * (decimal)0.8;
+            }
+            else 
+            {
+                businessmoney = order.money.Value * Convert.ToDecimal(pushmoneysetting.percentage.Replace("%", "")) * (decimal)0.01;
+            }
+
+            return Json(new { customername = order.customername, company = order.company, projectcontent = order.projectcontent, time = order.time, money = order.money, revemoney = revemoney, recetime = sktime.HasValue ? sktime.Value.ToString() : null, overday = overday, tc = pushmoneysetting.percentage, businessmoney = businessmoney,Result=true }, JsonRequestBehavior.AllowGet);
+
+        }
+
+        [HttpPost]
         public JsonResult ywtc_askpost(BuesinessRequestViewModel data)
         {
             try
@@ -566,6 +651,7 @@ namespace CW.Web.Controllers
                 {
                     return Json(new CWResponse { Msg = "找不到订单号", Result = false }, JsonRequestBehavior.AllowGet);
                 }
+
                 PushMoneySetting pushmoneysetting = pushmoneysettingds.GetByName(order.name);
                 data.businessrequst.ID = Guid.NewGuid();
                 data.businessrequst.Statues = 1;

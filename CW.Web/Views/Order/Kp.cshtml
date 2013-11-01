@@ -282,7 +282,9 @@
 
                         blur: function (d) {
                             var newVal = d.getValue().trim();
-                            orderstore.load({ params: { orderno: newVal} });
+                            if (newVal.length > 0) {
+                                orderstore.load({ params: { orderno: newVal} });
+                            }
                         }
                     },
                     allowBlank: false
@@ -340,7 +342,35 @@
                     name: 'money',
                     fieldLabel: '开票金额',
                     flex: 1,
-                    allowBlank: false
+                    allowBlank: false,
+                    listeners: {
+
+                        blur: function (d) {
+                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=orderid]');
+                            var orderno = orderFrom[0].getValue();
+                            var money = d.getValue().trim();
+                            $.ajax({
+                                url: '/order/GetKpBcAndBj',
+                                type: 'POST',
+                                dataType: 'json',
+                                data: $.toJSON({ orderno: orderno, money: money }),
+                                contentType: 'application/json; charset=utf-8',
+                                success: function (data) {
+
+                                }
+                            }).done(function (data) {
+                                if (data.Result) {
+                                    var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=bcmoney]');
+                                    orderFrom[0].setValue(data.bcmoney);
+                                    var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=bjsj]');
+                                    orderFrom[0].setValue(data.bjsj);
+                                }
+                                else {
+                                    showsucmsg(data.Msg);
+                                }
+                            });
+                        }
+                    }
 
                 }, {
                     name: 'company',
@@ -383,6 +413,33 @@
                     flex: 1
 
                 }]
+            }, {
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                defaultType: 'textfield',
+                fieldDefaults: {
+                    labelAlign: 'left'
+                },
+                defaults: {
+                    type: 'vbox',
+                    padding: '5',
+                    align: 'left'
+                },
+                bodyPadding: '5 5 0',
+                items: [{
+                    name: 'bcmoney',
+                    fieldLabel: '开票差额',
+                    readOnly: true,
+                    flex: 1
+
+                }, {
+                    name: 'bjsj',
+                    fieldLabel: '补交税金',
+                    readOnly: true,
+                    flex: 1
+
+
+                }]
             }],
 
             buttons: [{
@@ -392,6 +449,7 @@
                     if (this.up('form').getForm().isValid()) {
                         //alert(Ext.JSON.encode(this.up('form').getForm().getValues()));
                         var temp = {};
+                        var self = this;
                         var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=kptt]');
                         temp.kptt = orderFrom[0].getRawValue();
 
@@ -424,8 +482,10 @@
                             }
                         }).done(function (data) {
                             if (data.Result) {
+
                                 showsucmsg(data.Msg);
                                 kpstore.load();
+                                self.up('form').getForm().reset();
                             }
                             else {
                                 showsucmsg(data.Msg);

@@ -227,15 +227,25 @@ namespace CW.Web.Controllers
             try
             {
                 var userds = DataServiceContainer.Self.GetService<IUser>();
+                string id = data["id"];
                 string username = data["username"];
                 string password = data["password"];
                 int roleid = int.Parse(data["roleid"]);
                 string company = data["company"];
                 PaginationInfo paging = new PaginationInfo();
-                IList<user> users = userds.Get(username, null, 1, 1, null, out paging);
+                IList<user> users = userds.Get(username, null, 1, 0, null, out paging);
                 if (users != null && users.Count > 0)
                 {
-                    user user = users[0];
+                    if (users[0].ID != int.Parse(id) && users[0].username == username)
+                    {
+                        return Json(new CWResponse { Msg = "此用户名已经被用人使用，修改失败", Result = false }, JsonRequestBehavior.AllowGet);
+                    }
+                }
+
+                user user = userds.Get(int.Parse(id));
+                if (user != null )
+                {
+                  
                     user.username = username;
                     user.password = password;
                     user.Company = company;

@@ -224,17 +224,46 @@
                                 handler: function () {
                                     var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=orderno]');
                                     var orderno = orderFrom[0].getValue();
-                                    var orderobj = getorderinfo(orderno);
-                                    var company = orderobj.company;
-                                    var customername = orderobj.customername;
-                                    var projectcontent = orderobj.projectcontent;
 
-                                    var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=company]');
-                                    orderFrom[0].setValue(company);
-                                    var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=customername]');
-                                    orderFrom[0].setValue(customername);
-                                    var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=projectcontent]');
-                                    orderFrom[0].setValue(projectcontent);
+                                    $.ajax({
+                                        url: '/order/ywtc_requireinfo',
+                                        type: 'POST',
+                                        dataType: 'json',
+                                        data: $.toJSON({ orderno: orderno }),
+                                        contentType: 'application/json; charset=utf-8',
+                                        success: function (data) {
+
+                                        }
+                                    }).done(function (data) {
+                                        if (data.Result) {
+                                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=company]');
+                                            orderFrom[0].setValue(data.company);
+                                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=customername]');
+                                            orderFrom[0].setValue(data.customername);
+                                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=projectcontent]');
+                                            orderFrom[0].setValue(data.projectcontent);
+                                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=time]');
+                                            orderFrom[0].setValue(new Date(data.time));
+                                            if (data.recetime != undefined && data.recetime != null && data.recetime != "") {
+                                                var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=receivetime]');
+                                                orderFrom[0].setValue(new Date(data.recetime));
+                                            }
+
+                                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=overday]');
+                                            orderFrom[0].setValue(data.overday);
+                                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=receivemoney]');
+                                            orderFrom[0].setValue(data.revemoney);
+                                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=tc]');
+                                            orderFrom[0].setValue(data.tc);
+                                            var orderFrom = Ext.ComponentQuery.query('#multiColumnForm [name=businessmoney]');
+                                            orderFrom[0].setValue(data.businessmoney);
+
+                                        }
+                                        else {
+                                            showsucmsg(data.Msg);
+                                        }
+                                    });
+
                                 }
 
                             }]
@@ -334,6 +363,32 @@
                             }, {
                                 name: 'orderuser',
                                 fieldLabel: '制单人',
+                                flex: 1
+
+                            }]
+                        }, {
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            defaultType: 'textfield',
+                            fieldDefaults: {
+                                labelAlign: 'left'
+                            },
+                            defaults: {
+                                type: 'vbox',
+                                padding: '5',
+                                align: 'left'
+                            },
+                            bodyPadding: '5 5 0',
+                            items: [{
+                                name: 'tc',
+                                fieldLabel: '提成比例',
+                                allowBlank: false,
+                                flex: 1
+
+                            }, {
+                                name: 'businessmoney',
+                                fieldLabel: '业务提成',
+                                allowBlank: false,
                                 flex: 1
 
                             }]
